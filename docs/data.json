@@ -122,9 +122,9 @@
   ]
  },
  "snap": {
-  "fetchedAt": 1793478635052,
-  "checkedAt": 1793478635052,
-  "fullAt": 1793478635052,
+  "fetchedAt": 1793478822492,
+  "checkedAt": 1793478822492,
+  "fullAt": 1793478822492,
   "tmAt": 1793478074221,
   "allAt": 0,
   "feeds": {
@@ -174,7 +174,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793478639196
+    "fetchedAt": 1793478826707
    },
    "7GqzHSsWfAiG": {
     "name": "Tri-State Thunder Gold 14U",
@@ -216,13 +216,13 @@
        "name": "Impact Caymol Dibartolomeo 14U"
       },
       "score": {
-       "team": 0,
+       "team": 1,
        "opponent_team": 1
       },
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793478637234
+    "fetchedAt": 1793478824828
    },
    "9OmIn3ns4vv7": {
     "name": "Team PA 2030 Kammerdeiner",
@@ -281,7 +281,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793478635406
+    "fetchedAt": 1793478822915
    },
    "bWAgl1fokEJ8": {
     "name": "Unity 14U Williams",
@@ -329,7 +329,7 @@
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793478636051
+    "fetchedAt": 1793478823480
    },
    "jRj0Mi2IoFR2": {
     "name": "Impact Caymol Dibartolomeo 14U",
@@ -372,12 +372,12 @@
       },
       "score": {
        "team": 1,
-       "opponent_team": 0
+       "opponent_team": 1
       },
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793478637885
+    "fetchedAt": 1793478825406
    },
    "m0QuD26jFKCE": {
     "name": "Unity 14u Rodgers - PA",
@@ -436,7 +436,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793478636622
+    "fetchedAt": 1793478824229
    },
    "q1r5h3BZmdPR": {
     "name": "Outlaws Premier 2031 Lucia",
@@ -484,7 +484,7 @@
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793478638466
+    "fetchedAt": 1793478826040
    },
    "vaGizeBjZImX": {
     "name": "Team PA Rasbach 13U",
@@ -543,7 +543,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793478639836
+    "fetchedAt": 1793478827422
    }
   },
   "tm": {
