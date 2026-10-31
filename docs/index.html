@@ -144,7 +144,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
 
   <footer>Scores come from each team's public GameChanger page and may lag the field by a few minutes. Not affiliated with GameChanger or the tournament.</footer>
 </div>
-<script src="logic.js"></script>
+<script>/* always load the newest rules, not a cached copy */ document.write('<script src="logic.js?t=' + Math.floor(Date.now()/60000) + '"><\/script>');</script>
 <script>
 (function(){
   var $ = function(id){ return document.getElementById(id); };
