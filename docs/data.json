@@ -104,9 +104,9 @@
   "seedOrder": []
  },
  "snap": {
-  "fetchedAt": 1793475475857,
-  "checkedAt": 1793475475857,
-  "fullAt": 1793475475857,
+  "fetchedAt": 1793476201014,
+  "checkedAt": 1793476201014,
+  "fullAt": 1793476201014,
   "tmAt": 1793475475857,
   "allAt": 0,
   "feeds": {
@@ -156,7 +156,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793475480332
+    "fetchedAt": 1793476205010
    },
    "7GqzHSsWfAiG": {
     "name": "Tri-State Thunder Gold 14U",
@@ -201,7 +201,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793475478542
+    "fetchedAt": 1793476203122
    },
    "9OmIn3ns4vv7": {
     "name": "Team PA 2030 Kammerdeiner",
@@ -260,7 +260,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793475476620
+    "fetchedAt": 1793476201317
    },
    "bWAgl1fokEJ8": {
     "name": "Unity 14U Williams",
@@ -305,7 +305,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793475477293
+    "fetchedAt": 1793476201894
    },
    "jRj0Mi2IoFR2": {
     "name": "Impact Caymol Dibartolomeo 14U",
@@ -342,15 +342,18 @@
       "id": "12e1d836-d2d8-4a66-b394-92aa8a431ec6",
       "start_ts": "2026-10-31T20:00:00.000Z",
       "end_ts": "2026-10-31T21:00:00.000Z",
-      "home_away": null,
+      "home_away": "away",
       "opponent_team": {
        "name": "Tri-State Thunder Gold 14U"
       },
-      "score": null,
-      "game_status": null
+      "score": {
+       "team": 0,
+       "opponent_team": 0
+      },
+      "game_status": "new"
      }
     ],
-    "fetchedAt": 1793475479127
+    "fetchedAt": 1793476203742
    },
    "m0QuD26jFKCE": {
     "name": "Unity 14u Rodgers - PA",
@@ -387,12 +390,15 @@
       "id": "70f479c9-e126-4a96-ad03-b9530efefd3f",
       "start_ts": "2026-10-31T20:00:00.000Z",
       "end_ts": "2026-10-31T21:20:00.000Z",
-      "home_away": null,
+      "home_away": "away",
       "opponent_team": {
        "name": "Team PA 2030 Kammerdeiner"
       },
-      "score": null,
-      "game_status": null
+      "score": {
+       "team": 0,
+       "opponent_team": 0
+      },
+      "game_status": "new"
      },
      {
       "id": "672c74db-e904-40a2-a49c-77c3c8bbaf1c",
@@ -406,7 +412,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793475477952
+    "fetchedAt": 1793476202577
    },
    "q1r5h3BZmdPR": {
     "name": "Outlaws Premier 2031 Lucia",
@@ -443,15 +449,18 @@
       "id": "5278deb7-01c0-4344-9ef2-7a06a8b84a26",
       "start_ts": "2026-10-31T20:00:00.000Z",
       "end_ts": "2026-10-31T21:30:00.000Z",
-      "home_away": null,
+      "home_away": "home",
       "opponent_team": {
        "name": "Unity 14U Williams"
       },
-      "score": null,
-      "game_status": null
+      "score": {
+       "team": 0,
+       "opponent_team": 0
+      },
+      "game_status": "new"
      }
     ],
-    "fetchedAt": 1793475479697
+    "fetchedAt": 1793476204307
    },
    "vaGizeBjZImX": {
     "name": "Team PA Rasbach 13U",
@@ -524,7 +533,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793475480912
+    "fetchedAt": 1793476205661
    }
   },
   "tm": {
