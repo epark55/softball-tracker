@@ -275,6 +275,11 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
       if (tm.lastUpdated) b += '<p class="muted" style="font-size:13px;margin:0">Tourney Machine last updated ' + esc(tm.lastUpdated) + '.</p>';
     }
     $("bracket").innerHTML = b;
+    if (cfg.auto){
+      var autoNote = '<div class="note"><strong>No tournament set up for this weekend yet.</strong><span class="muted">This page is following ' + esc(followTeam ? followTeam.name : 'our team') + '\'s games on its own. Full standings and the bracket appear once the weekend\'s tournament is set up.</span></div>';
+      $("stand").innerHTML = autoNote; $("bracket").innerHTML = '<p class="empty">The bracket appears once the tournament is set up.</p>';
+      $("h-dates").textContent = games.length ? fmtDate(cfg.dateStart) + (cfg.dateEnd!==cfg.dateStart ? " – " + fmtDate(cfg.dateEnd) : "") : "No upcoming games on GameChanger yet";
+    }
 
   }
 

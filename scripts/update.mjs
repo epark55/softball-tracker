@@ -51,28 +51,80 @@ function parseTMHtml(html) {
   return out;
 }
 
+function addDays(ymd, n) {
+  const d = new Date(ymd + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10);
+}
+const slim = (g) => ({ id: g.id, start_ts: g.start_ts, end_ts: g.end_ts || null, opponent_team: { name: (g.opponent_team && g.opponent_team.name) || "" },
+                       score: g.score || null, game_status: g.game_status || null });
+
+/* Group our team's games into weekends (game days at most a day apart) and pick the one to show:
+   the weekend under way, else the next one within 6 days, else the one that just ended (through
+   Tuesday), else the next one on the calendar. */
+function weekendOf(games, today) {
+  const days = [...new Set((games || []).filter((g) => g.start_ts && g.opponent_team && g.opponent_team.name)
+    .map((g) => TL.localDate(g.start_ts)))].sort();
+  const clusters = [];
+  for (const d of days) {
+    const c = clusters[clusters.length - 1];
+    if (c && d <= addDays(c.dateEnd, 2)) c.dateEnd = d; else clusters.push({ dateStart: d, dateEnd: d });
+  }
+  return clusters.find((c) => c.dateStart <= today && today <= c.dateEnd)
+      || clusters.find((c) => c.dateStart > today && c.dateStart <= addDays(today, 6))
+      || [...clusters].reverse().find((c) => c.dateEnd < today && today <= addDays(c.dateEnd, 2))
+      || clusters.find((c) => c.dateStart > today)
+      || null;
+}
+function autoGameHours(cfg, snap, now) {
+  if (!cfg || !cfg.auto) return false;
+  try { return TL.inGameHours(TL.mergeGames(cfg, snap, TL.buildRoster(cfg, snap)), now); } catch { return false; }
+}
+
 function sameScores(a, b) {
-  const strip = (s) => JSON.stringify(s, (k, v) => (/^(fetchedAt|checkedAt|fullAt|tmAt)$/.test(k) ? undefined : v));
+  const strip = (s) => JSON.stringify(s, (k, v) => (/^(fetchedAt|checkedAt|fullAt|tmAt|allAt)$/.test(k) ? undefined : v));
   return strip(a) === strip(b);
 }
 
 async function main() {
-  const cfg = JSON.parse(readFileSync(CFG_PATH, "utf8"));
+  const base = JSON.parse(readFileSync(CFG_PATH, "utf8"));
   const prev = existsSync(OUT_PATH) ? JSON.parse(readFileSync(OUT_PATH, "utf8")) : {};
-  const prevSnap = prev.snap || {};
+  let prevSnap = prev.snap || {};
   const now = Date.now();
   const today = TL.localDate(new Date(now).toISOString());
-  const cfgChanged = JSON.stringify(prev.cfg || null) !== JSON.stringify(cfg);
+  const baseChanged = JSON.stringify(prev.base || null) !== JSON.stringify(base);
+
+  // Which tournament to show: the one in tournament.json from the week before it until the
+  // day after it ends; otherwise "our team only" for whatever weekend the team plays next.
+  let cfg = base;
+  const configured = base.dateStart && base.dateEnd && today >= addDays(base.dateStart, -6) && today <= addDays(base.dateEnd, 1);
+  if (!configured) {
+    const ourId = base.follow;
+    let ourGames = (prevSnap.feeds && prevSnap.feeds[ourId] && prevSnap.feeds[ourId].all) || null;
+    const lastAll = prevSnap.allAt || 0;
+    if (!ourGames || now - lastAll > 55 * 60000 || FORCE || baseChanged || autoGameHours(prev.cfg, prevSnap, now)) {
+      try { ourGames = (await get(GC + ourId + "/games", "json")).map(slim); prevSnap = { ...prevSnap, allAt: now }; }
+      catch (e) { log("Couldn't read our team's schedule:", e.message || e); if (!ourGames) { process.exitCode = 1; return; } }
+    }
+    const wk = weekendOf(ourGames, today);
+    const name = (base.gcTeams || []).find((t) => t.id === ourId)?.name || prev.cfg?.gcTeams?.[0]?.name || "Our team";
+    const when = !wk ? "Schedule" : wk.dateEnd < today ? "Last weekend" : wk.dateStart > addDays(today, 6) ? "Next games" : "This weekend";
+    cfg = { auto: true, title: name + " · " + when,
+            venue: "", dateStart: wk ? wk.dateStart : today, dateEnd: wk ? wk.dateEnd : today,
+            bracketStart: wk ? wk.dateEnd : today, bracketSize: 0, follow: ourId, tmUrls: [],
+            gcTeams: [{ id: ourId, name }], excludeTeams: [], seedOrder: [] };
+    prevSnap = { ...prevSnap, ourAll: ourGames };
+    log("No tournament set up for this week; following", name, wk ? wk.dateStart + ".." + wk.dateEnd : "(no upcoming games)");
+  }
+  const cfgChanged = baseChanged || JSON.stringify(prev.cfg || null) !== JSON.stringify(cfg);
 
   // Only pull during the tournament: every run during game hours, hourly otherwise.
   if (!FORCE && !cfgChanged) {
-    if (today < cfg.dateStart || today > cfg.dateEnd) { log("Outside tournament dates; nothing to do."); return; }
+    if (!cfg.auto && (today < cfg.dateStart || today > cfg.dateEnd)) { log("Outside tournament dates; nothing to do."); return; }
     const games = TL.mergeGames(cfg, prevSnap, TL.buildRoster(cfg, prevSnap));
     const lastFull = prevSnap.fullAt || prevSnap.fetchedAt || 0;
     if (!TL.inGameHours(games, now) && now - lastFull < 55 * 60000) { log("Outside game hours; checked recently."); return; }
   }
 
-  const snap = { fetchedAt: now, checkedAt: now, fullAt: now, tmAt: prevSnap.tmAt || 0,
+  const snap = { fetchedAt: now, checkedAt: now, fullAt: now, tmAt: prevSnap.tmAt || 0, allAt: prevSnap.allAt || 0,
                  feeds: { ...(prevSnap.feeds || {}) }, tm: prevSnap.tm || { status: "none", teams: [] } };
   const teams = cfg.gcTeams || [];
   let ok = 0;
@@ -119,7 +171,8 @@ async function main() {
   const changed = cfgChanged || !sameScores(prevSnap, snap);
   const stale = now - (prevSnap.fetchedAt || 0) > 60 * 60000;
   if (!changed && !stale) { log("No score changes."); return; }
-  writeFileSync(OUT_PATH, JSON.stringify({ cfg, snap }, null, 1) + "\n");
+  if (cfg.auto && prevSnap.ourAll) { snap.feeds[cfg.follow] = { ...(snap.feeds[cfg.follow] || {}), all: prevSnap.ourAll }; snap.allAt = prevSnap.allAt || now; }
+  writeFileSync(OUT_PATH, JSON.stringify({ base, cfg, snap }, null, 1) + "\n");
   log(changed ? "Scores changed; wrote docs/data.json" : "Hourly refresh; wrote docs/data.json");
 }
 
