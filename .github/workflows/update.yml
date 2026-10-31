@@ -1,0 +1,42 @@
+name: Update scores
+
+on:
+  schedule:
+    # Every 5 minutes. GitHub can run these late when it's busy.
+    # The script itself skips work outside tournament dates and game hours.
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths: ["tournament.json", "scripts/**", "docs/logic.js"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-scores
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Pull scores
+        run: node scripts/update.mjs
+      - name: Save changes
+        run: |
+          if git diff --quiet -- docs/data.json; then
+            echo "Nothing new to save."
+            exit 0
+          fi
+          git config user.name "score-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data.json
+          git commit -m "Update scores"
+          git pull --rebase --autostash origin main
+          git push
