@@ -1,4 +1,56 @@
 {
+ "base": {
+  "title": "Team PA Ghostbuster 14U Alliance Qualifier / 13U Super Cup",
+  "venue": "Highlands Sports Complex, Triadelphia, WV",
+  "dateStart": "2026-10-30",
+  "dateEnd": "2026-11-01",
+  "bracketStart": "2026-11-01",
+  "bracketSize": 0,
+  "follow": "9OmIn3ns4vv7",
+  "tmUrls": [
+   "https://tourneymachine.com/Public/Results/Division.aspx?IDTournament=h202608181333467130353119d375842&IDDivision=h20260818133346733f1b7d697cf0a42",
+   "https://tourneymachine.com/Public/Results/Division.aspx?IDTournament=h202608181333467130353119d375842&IDDivision=h202608181333467411ab57b8d787a4e"
+  ],
+  "gcTeams": [
+   {
+    "id": "9OmIn3ns4vv7",
+    "name": "Team PA 2030 Kammerdeiner"
+   },
+   {
+    "id": "bWAgl1fokEJ8",
+    "name": "Unity 14U Williams"
+   },
+   {
+    "id": "m0QuD26jFKCE",
+    "name": "Unity 14u Rodgers - PA"
+   },
+   {
+    "id": "7GqzHSsWfAiG",
+    "name": "Tri-State Thunder Gold 14U"
+   },
+   {
+    "id": "jRj0Mi2IoFR2",
+    "name": "Impact Caymol Dibartolomeo 14U"
+   },
+   {
+    "id": "q1r5h3BZmdPR",
+    "name": "Outlaws Premier 2031 Lucia"
+   },
+   {
+    "id": "13tI2vPbkHn0",
+    "name": "Team PA Larcinese/Pinneri 13U"
+   },
+   {
+    "id": "vaGizeBjZImX",
+    "name": "Team PA Rasbach 13U"
+   }
+  ],
+  "excludeTeams": [
+   "NJ PRIDE 14 KEITH",
+   "Unity Torres/Delhoyo"
+  ],
+  "seedOrder": []
+ },
  "cfg": {
   "title": "Team PA Ghostbuster 14U Alliance Qualifier / 13U Super Cup",
   "venue": "Highlands Sports Complex, Triadelphia, WV",
@@ -52,10 +104,11 @@
   "seedOrder": []
  },
  "snap": {
-  "fetchedAt": 1793474230764,
-  "checkedAt": 1793474230764,
-  "fullAt": 1793474230764,
-  "tmAt": 1793473711399,
+  "fetchedAt": 1793475475857,
+  "checkedAt": 1793475475857,
+  "fullAt": 1793475475857,
+  "tmAt": 1793475475857,
+  "allAt": 0,
   "feeds": {
    "13tI2vPbkHn0": {
     "name": "Team PA Larcinese/Pinneri 13U",
@@ -97,13 +150,13 @@
        "name": "Unity 14u Rodgers - PA"
       },
       "score": {
-       "team": 4,
-       "opponent_team": 3
+       "team": 8,
+       "opponent_team": 7
       },
-      "game_status": "live"
+      "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793474234907
+    "fetchedAt": 1793475480332
    },
    "7GqzHSsWfAiG": {
     "name": "Tri-State Thunder Gold 14U",
@@ -148,7 +201,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793474233107
+    "fetchedAt": 1793475478542
    },
    "9OmIn3ns4vv7": {
     "name": "Team PA 2030 Kammerdeiner",
@@ -191,9 +244,9 @@
       },
       "score": {
        "team": 2,
-       "opponent_team": 6
+       "opponent_team": 7
       },
-      "game_status": "live"
+      "game_status": "completed"
      },
      {
       "id": "47ab1c30-0809-4e18-bfd5-798760f4f0b7",
@@ -207,7 +260,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793474231521
+    "fetchedAt": 1793475476620
    },
    "bWAgl1fokEJ8": {
     "name": "Unity 14U Williams",
@@ -252,7 +305,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793474232072
+    "fetchedAt": 1793475477293
    },
    "jRj0Mi2IoFR2": {
     "name": "Impact Caymol Dibartolomeo 14U",
@@ -280,10 +333,10 @@
        "name": "Team PA Rasbach 13U"
       },
       "score": {
-       "team": 5,
-       "opponent_team": 4
+       "team": 9,
+       "opponent_team": 7
       },
-      "game_status": "live"
+      "game_status": "completed"
      },
      {
       "id": "12e1d836-d2d8-4a66-b394-92aa8a431ec6",
@@ -297,7 +350,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793474233702
+    "fetchedAt": 1793475479127
    },
    "m0QuD26jFKCE": {
     "name": "Unity 14u Rodgers - PA",
@@ -325,10 +378,10 @@
        "name": "Team PA Larcinese/Pinneri 13U"
       },
       "score": {
-       "team": 3,
-       "opponent_team": 4
+       "team": 7,
+       "opponent_team": 8
       },
-      "game_status": "live"
+      "game_status": "completed"
      },
      {
       "id": "70f479c9-e126-4a96-ad03-b9530efefd3f",
@@ -353,7 +406,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793474232599
+    "fetchedAt": 1793475477952
    },
    "q1r5h3BZmdPR": {
     "name": "Outlaws Premier 2031 Lucia",
@@ -398,7 +451,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793474234276
+    "fetchedAt": 1793475479697
    },
    "vaGizeBjZImX": {
     "name": "Team PA Rasbach 13U",
@@ -454,10 +507,10 @@
        "name": "Impact Caymol Dibartolomeo 14U"
       },
       "score": {
-       "team": 4,
-       "opponent_team": 5
+       "team": 7,
+       "opponent_team": 9
       },
-      "game_status": "live"
+      "game_status": "completed"
      },
      {
       "id": "05d12327-7767-4f45-b6a6-8a03f0704c07",
@@ -471,7 +524,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793474235497
+    "fetchedAt": 1793475480912
    }
   },
   "tm": {
