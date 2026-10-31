@@ -59,7 +59,7 @@ var TL = (function(){
   }
   /* one list of tournament games from every team feed, duplicates merged */
   function mergeGames(cfg, snap, roster){
-    var map = {};
+    var map = {}, nowMs = Date.now();
     var feeds = (snap && snap.feeds) || {};
     Object.keys(feeds).forEach(function(id){
       var f = feeds[id]; if (!f || !f.games) return;
@@ -80,16 +80,30 @@ var TL = (function(){
         var pair = [mine,theirs].sort(function(a,b){ return a.k < b.k ? -1 : 1; });
         var key = g.start_ts.slice(0,16) + "|" + pair[0].k + "|" + pair[1].k;
         var rec = {key:key, start:g.start_ts, end:g.end_ts||null, a:pair[0], b:pair[1], final:!!done, live:live, status:g.game_status||null, sources:[id], conflict:false};
-        var ex = map[key];
-        if (!ex){ map[key] = rec; return; }
-        if (ex.sources.indexOf(id) < 0) ex.sources.push(id);
-        if (!ex.end && rec.end) ex.end = rec.end;
-        if (rec.final && !ex.final){ rec.sources = ex.sources; rec.end = rec.end || ex.end; map[key] = rec; }
-        else if (rec.final && ex.final && (rec.a.s !== ex.a.s || rec.b.s !== ex.b.s)) ex.conflict = true;
-        else if (!ex.final && rec.live && (!ex.live || (rec.a.s + rec.b.s) > (ex.a.s + ex.b.s))){ rec.sources = ex.sources; rec.end = rec.end || ex.end; map[key] = rec; }
+        /* a game can't be final before it starts: that's a scoring mistake, so show it as not started */
+        if (rec.final && nowMs < Date.parse(g.start_ts)){ rec.final = false; rec.a.s = rec.b.s = null; rec.early = true; }
+        (map[key] = map[key] || []).push(rec);
       });
     });
-    var list = Object.keys(map).map(function(k){ return map[k]; });
+    /* each team's page reports the game separately; decide what to show when they differ */
+    var list = Object.keys(map).map(function(k){
+      var reps = map[k], srcs = [];
+      reps.forEach(function(r){ r.sources.forEach(function(s){ if (srcs.indexOf(s) < 0) srcs.push(s); }); });
+      var end = (reps.find(function(r){ return r.end; }) || {}).end || null;
+      var finals = reps.filter(function(r){ return r.final; }), lives = reps.filter(function(r){ return r.live; });
+      var pick;
+      if (lives.length && finals.length && lives.some(function(l){ return finals.every(function(f){ return f.sources[0] !== l.sources[0]; }); })){
+        /* one team still scoring it live while the other already says final: trust the live game */
+        pick = lives.sort(function(x,y){ return (y.a.s + y.b.s) - (x.a.s + x.b.s); })[0];
+      } else if (finals.length){
+        pick = finals[0];
+        if (finals.some(function(f){ return f.a.s !== pick.a.s || f.b.s !== pick.b.s; })) pick.conflict = true;
+      } else if (lives.length){
+        pick = lives.sort(function(x,y){ return (y.a.s + y.b.s) - (x.a.s + x.b.s); })[0];
+      } else pick = reps[0];
+      pick.sources = srcs; pick.end = pick.end || end;
+      return pick;
+    });
     /* A scorekeeper sometimes scores a game as a new entry and leaves the original listing behind.
        Drop a never-started game when the same two teams already have a final the same day
        and its start time is more than 3 hours past. */
