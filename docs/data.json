@@ -50,15 +50,7 @@
    "Unity Torres/Delhoyo"
   ],
   "seedOrder": [],
-  "ignoreReports": [
-   {
-    "team": "Unity 14u Rodgers - PA",
-    "opponent": "Team PA 2030 Kammerdeiner",
-    "start": "2026-10-31T20:00:00.000Z",
-    "score": "7-0",
-    "why": "Entered in error; game was played at 4:00 PM"
-   }
-  ]
+  "ignoreReports": []
  },
  "cfg": {
   "title": "Team PA Ghostbuster 14U Alliance Qualifier / 13U Super Cup",
@@ -111,21 +103,13 @@
    "Unity Torres/Delhoyo"
   ],
   "seedOrder": [],
-  "ignoreReports": [
-   {
-    "team": "Unity 14u Rodgers - PA",
-    "opponent": "Team PA 2030 Kammerdeiner",
-    "start": "2026-10-31T20:00:00.000Z",
-    "score": "7-0",
-    "why": "Entered in error; game was played at 4:00 PM"
-   }
-  ]
+  "ignoreReports": []
  },
  "snap": {
-  "fetchedAt": 1793483521567,
-  "checkedAt": 1793483521567,
-  "fullAt": 1793483521567,
-  "tmAt": 1793483521567,
+  "fetchedAt": 1793483897059,
+  "checkedAt": 1793483897059,
+  "fullAt": 1793483897059,
+  "tmAt": 1793483897059,
   "allAt": 0,
   "feeds": {
    "13tI2vPbkHn0": {
@@ -174,7 +158,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793483525425
+    "fetchedAt": 1793483901194
    },
    "7GqzHSsWfAiG": {
     "name": "Tri-State Thunder Gold 14U",
@@ -222,7 +206,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793483523530
+    "fetchedAt": 1793483899171
    },
    "9OmIn3ns4vv7": {
     "name": "Team PA 2030 Kammerdeiner",
@@ -281,7 +265,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793483521854
+    "fetchedAt": 1793483897336
    },
    "bWAgl1fokEJ8": {
     "name": "Unity 14U Williams",
@@ -329,7 +313,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793483522451
+    "fetchedAt": 1793483897880
    },
    "jRj0Mi2IoFR2": {
     "name": "Impact Caymol Dibartolomeo 14U",
@@ -377,7 +361,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793483524205
+    "fetchedAt": 1793483899873
    },
    "m0QuD26jFKCE": {
     "name": "Unity 14u Rodgers - PA",
@@ -436,7 +420,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793483522990
+    "fetchedAt": 1793483898600
    },
    "q1r5h3BZmdPR": {
     "name": "Outlaws Premier 2031 Lucia",
@@ -484,7 +468,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793483524744
+    "fetchedAt": 1793483900463
    },
    "vaGizeBjZImX": {
     "name": "Team PA Rasbach 13U",
@@ -543,7 +527,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793483525975
+    "fetchedAt": 1793483901880
    }
   },
   "tm": {
