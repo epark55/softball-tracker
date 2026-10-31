@@ -104,6 +104,38 @@ var TL = (function(){
       pick.sources = srcs; pick.end = pick.end || end;
       return pick;
     });
+    /* Tourney Machine: the official schedule. Its game matches a GameChanger game when the same two
+       teams meet the same day within 2 hours. GameChanger stays the source for live scores (it's faster);
+       Tourney Machine's final is official, so it settles disagreements and fills in games GameChanger lacks. */
+    var tmg = (snap && snap.tm && snap.tm.games) || [];
+    tmg.forEach(function(t){
+      if (!t.start_ts || !inWindow(t.start_ts, cfg)) return;
+      var A = canon(t.t1.name, roster), B = canon(t.t2.name, roster);
+      if (!A.inField || !B.inField || A.key === B.key) return;   /* "Winner of B2", "1st Pool A" and the like */
+      var fin = t.s1 != null && t.s2 != null;
+      var sa = {k:A.key, n:A.name, inField:true, s: fin ? t.s1 : null}, sb = {k:B.key, n:B.name, inField:true, s: fin ? t.s2 : null};
+      var seeds = {}; if (t.t1.seed) seeds[A.key] = t.t1.seed; if (t.t2.seed) seeds[B.key] = t.t2.seed;
+      var day = localDate(t.start_ts), at = Date.parse(t.start_ts), best = null, bestGap = 2*3600000 + 1;
+      list.forEach(function(g){
+        var same = (g.a.k===A.key && g.b.k===B.key) || (g.a.k===B.key && g.b.k===A.key);
+        if (!same || localDate(g.start) !== day) return;
+        var gap = Math.abs(Date.parse(g.start) - at); if (gap < bestGap){ best = g; bestGap = gap; }
+      });
+      var info = {no:t.no, loc:t.loc, seeds:seeds};
+      if (best){
+        best.tm = info; if (best.sources.indexOf("tm") < 0) best.sources.push("tm");
+        if (fin){
+          var aIsA = best.a.k === A.key;
+          var ta = aIsA ? t.s1 : t.s2, tb = aIsA ? t.s2 : t.s1;
+          if (!best.final || best.conflict || best.a.s !== ta || best.b.s !== tb){ best.overruled = best.final && !best.conflict && (best.a.s !== ta || best.b.s !== tb); }
+          best.a.s = ta; best.b.s = tb; best.final = true; best.live = false; best.conflict = false; best.official = true;
+        }
+      } else {
+        var pair = [sa, sb].sort(function(x,y){ return x.k < y.k ? -1 : 1; });
+        list.push({key:"tm|"+(t.id||t.no), start:t.start_ts, end:null, a:pair[0], b:pair[1], final:fin, live:false, official:fin,
+                   status:null, sources:["tm"], conflict:false, tm:info});
+      }
+    });
     /* A scorekeeper sometimes scores a game as a new entry and leaves the original listing behind.
        Drop a never-started game when the same two teams already have a final the same day
        and its start time is more than 3 hours past. */
@@ -193,7 +225,10 @@ var TL = (function(){
     if (!teams.length && prev && prev.teams) teams = prev.teams;
     var status = st.indexOf("posted") >= 0 ? "posted" : st.indexOf("not_released") >= 0 ? "not_released" : st.indexOf("error") >= 0 ? "error" : "none";
     var lu = parts.map(function(p){ return p.lastUpdated; }).filter(Boolean);
-    return {status:status, teams:teams, lastUpdated: lu.length ? lu[lu.length-1] : null, divisions: parts.length};
+    var games = [], pools = [], seen = {};
+    parts.forEach(function(p){ (p.games||[]).forEach(function(g){ if (!seen[g.id]){ seen[g.id] = 1; games.push(g); } }); (p.pools||[]).forEach(function(x){ pools.push(x); }); });
+    if (!games.length && prev && prev.games && st.indexOf("error") >= 0) games = prev.games;
+    return {status:status, teams:teams, pools:pools, games:games, lastUpdated: lu.length ? lu[lu.length-1] : null, divisions: parts.length};
   }
   function trimGames(arr, cfg){
     return (Array.isArray(arr)?arr:[]).filter(function(g){ return g && g.start_ts && inWindow(g.start_ts,cfg); })
@@ -264,7 +299,51 @@ var TL = (function(){
     return {rounds:rounds, third:third, champion: fin.winner || null, size:n};
   }
 
-  return {extractBody:extractBody, parseTabId:parseTabId, gcIdFromLink:gcIdFromLink, norm:norm, similar:similar, inWindow:inWindow, localDate:localDate,
+  /* The bracket as actually scheduled: bracket-day games between tournament teams, from GameChanger
+     and Tourney Machine. Single elimination: a team's next game is one round later than its last.
+     Teams that enter in round 1 are the ones whose first game comes before every bye team plays;
+     with N teams in a bracket sized P (next power of 2), that's N - P/2 opening games. */
+  function actualBracket(elim, field, cfg){
+    var games = elim.filter(function(g){ return g.a.inField && g.b.inField; })
+                    .sort(function(x,y){ return x.start < y.start ? -1 : x.start > y.start ? 1 : 0; });
+    if (!games.length) return null;
+    var N = cfg.bracketSize || field.length; if (N < 2) N = 2;
+    var P = 1; while (P < N) P *= 2;
+    var R = Math.round(Math.log(P)/Math.log(2));
+    var opening = N === P ? P/2 : N - P/2;
+    var st = {}, rounds = [], third = null, used1 = 0, champion = null;
+    function ent(k){ return st[k] || (st[k] = {next:null, out:false, outRound:null, played:0}); }
+    games.forEach(function(g){
+      var A = ent(g.a.k), B = ent(g.b.k), round;
+      if (A.out && B.out){ third = g; g.consolation = true; return; }
+      if (A.next == null && B.next == null){ round = used1 < opening ? (used1++, 1) : 2; if (opening === P/2) round = 1; }
+      else round = Math.max(A.next || 0, B.next || 0);
+      round = Math.min(Math.max(round, 1), R);
+      g.round = round; (rounds[round-1] = rounds[round-1] || []).push(g);
+      A.next = B.next = round + 1; A.played++; B.played++;
+      if (g.final && !g.conflict && g.a.s !== g.b.s){
+        var w = g.a.s > g.b.s ? g.a : g.b, l = w === g.a ? g.b : g.a;
+        g.winner = w.k; st[l.k].out = true; st[l.k].outRound = round;
+        if (round === R) champion = w;
+      }
+    });
+    var out = [];
+    for (var r = 1; r <= R; r++){
+      var gs = rounds[r-1] || [];
+      var expected = r === 1 ? opening : P / Math.pow(2, r);
+      /* teams that have won through to this round but aren't on the schedule yet */
+      var waiting = [];
+      (rounds[r-2] || []).forEach(function(g){ if (g.winner && !gs.some(function(x){ return x.a.k===g.winner || x.b.k===g.winner; })) waiting.push(g.a.k===g.winner ? g.a : g.b); });
+      var placeholders = [];
+      for (var i = gs.length; i < expected; i++) placeholders.push(waiting.length ? waiting.shift() : null);
+      var slots = P / Math.pow(2, r-1);
+      out.push({name: r === 1 && opening < P/2 ? "Opening round" : roundName(slots), games: gs, placeholders: placeholders});
+    }
+    if (out.length > 1 && !out[0].games.length && !out[0].placeholders.length) out.shift();
+    return {rounds: out, third: third, champion: champion, status: st, size: N, finalRound: R};
+  }
+
+  return {actualBracket:actualBracket, extractBody:extractBody, parseTabId:parseTabId, gcIdFromLink:gcIdFromLink, norm:norm, similar:similar, inWindow:inWindow, localDate:localDate,
           buildRoster:buildRoster, canon:canon, mergeGames:mergeGames, standings:standings, parseTM:parseTM, combineTM:combineTM, trimGames:trimGames, TZ:TZ,
           inProgress:inProgress, liveTeamIds:liveTeamIds, inGameHours:inGameHours, teamsForFull:teamsForFull, teamsForLive:teamsForLive,
           poolGames:poolGames, elimGames:elimGames, table:table, seedList:seedList, slotOrder:slotOrder, buildBracket:buildBracket, bracketDay:bracketDay};

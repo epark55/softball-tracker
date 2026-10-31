@@ -24,6 +24,17 @@ The page updates within a few minutes.
 | `excludeTeams` | Teams on Tourney Machine's list that aren't actually playing |
 | `seedOrder` | Official seeds once the director posts them, 1st seed first. Leave `[]` to seed from pool standings. |
 
+## Where the data comes from
+
+- **GameChanger** (each team's public page): schedules, live scores and finals, usually minutes after a game ends.
+- **Tourney Machine** (the division pages in `tmUrls`): the team list and, once the director posts them,
+  pools, every game with its number and field, seeds and official finals.
+- When both report a game, GameChanger's live score is shown while it's being played, and Tourney Machine's
+  posted final is treated as official if the two disagree.
+- The bracket is drawn from the bracket games actually on the schedule. Before any are scheduled it shows a
+  projection from pool standings.
+- Anyone can follow any team in the field from the menu at the top, including after their own team is out.
+
 ## How it works
 
 - `.github/workflows/update.yml` runs `scripts/loop.sh`, one long job that runs

@@ -5,6 +5,7 @@
 //   FORCE=1 node scripts/update.mjs  (always pulls)
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { createRequire } from "node:module";
+import { pathToFileURL } from "node:url";
 
 const require = createRequire(import.meta.url);
 const TL = require("../docs/logic.js");
@@ -35,19 +36,42 @@ async function get(url, kind) {
   }
 }
 
-/* Tourney Machine division page (raw HTML) -> {status, teams, lastUpdated} */
-function parseTMHtml(html) {
-  const out = { status: "none", teams: [], lastUpdated: null };
-  const re = /hlkTeamResults"[^>]*>([^<]+)</g;
+/* Tourney Machine division page (raw HTML) -> {status, teams, pools, games, lastUpdated}.
+   Once the director posts, the page has pool tables and one schedule row per game:
+   game number (P1.. pool, B1.. bracket), date, time, field, both teams (seeds as "[2] Name"), scores. */
+const clean = (s) => s.replace(/<br\s*\/?>[\s\S]*$/i, "").replace(/<[^>]+>/g, " ")
+  .replace(/&amp;/g, "&").replace(/&nbsp;/g, " ").replace(/&#39;/g, "'").replace(/\s+/g, " ").trim();
+function etOffsetHours(y, m, d) {
+  const s = new Date(Date.UTC(y, m - 1, d, 12)).toLocaleString("en-US", { timeZone: "America/New_York", timeZoneName: "shortOffset" });
+  const mm = /GMT([+-]\d+)/.exec(s); return mm ? +mm[1] : -5;
+}
+export function parseTMHtml(html) {
+  const out = { status: "none", teams: [], pools: [], games: [], lastUpdated: null };
+  const addTeam = (n) => { n = n.replace(/&amp;/g, "&").replace(/\s*\([^)]*\)\s*$/, "").trim(); if (n && !out.teams.includes(n)) out.teams.push(n); };
   let m;
-  while ((m = re.exec(html))) {
-    const name = m[1].replace(/&amp;/g, "&").replace(/\s*\([^)]*\)\s*$/, "").trim();
-    if (name && !out.teams.includes(name)) out.teams.push(name);
+  const re = /hlkTeamResults"[^>]*>([^<]+)</g;
+  while ((m = re.exec(html))) addTeam(m[1]);
+  const pr = /pool-name">[\s\S]*?tournamentResultsTitle">\s*([^<]+?)\s*<\/th>[\s\S]*?<tbody>([\s\S]*?)<\/tbody>/g;
+  while ((m = pr.exec(html))) {
+    const teams = [...m[2].matchAll(/IDTeam=[^"]+">([^<]+)<\/a>/g)].map((x) => x[1].replace(/&amp;/g, "&").trim());
+    teams.forEach(addTeam);
+    out.pools.push({ name: m[1].trim(), teams });
+  }
+  const gr = /<tr class="schedule_row date_(\d{8})[^"]*"[^>]*data-gameid="([^"]+)"[^>]*>([\s\S]*?)<\/tr>/g;
+  while ((m = gr.exec(html))) {
+    const c = [...m[3].matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/g)].map((x) => x[1]);
+    if (c.length < 7) continue;
+    const y = +m[1].slice(0, 4), mo = +m[1].slice(4, 6), d = +m[1].slice(6, 8);
+    const t = /(\d{1,2}):(\d{2})\s*([AP]M)/i.exec(clean(c[1].replace(/<div[^>]*schedule_row_date[^>]*>[\s\S]*?<\/div>/, "")));
+    const start_ts = t ? new Date(Date.UTC(y, mo - 1, d, (+t[1] % 12) + (/p/i.test(t[3]) ? 12 : 0) - etOffsetHours(y, mo, d), +t[2])).toISOString() : null;
+    const side = (cell) => { const n = clean(cell); const sd = /^\[(\d+)\]\s*/.exec(n); return { name: n.replace(/^\[\d+\]\s*/, ""), seed: sd ? +sd[1] : null }; };
+    const num = (cell) => { const v = clean(cell); return /^\d+$/.test(v) ? +v : null; };
+    out.games.push({ id: m[2], no: clean(c[0]), start_ts, loc: clean(c[2]), t1: side(c[3]), t2: side(c[6]), s1: num(c[4]), s2: num(c[5]) });
   }
   const lu = /Last Updated[\s\S]{0,200}?(\w{3} \d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{2} [AP]M)/.exec(html);
   if (lu) out.lastUpdated = lu[1];
-  if (/has not released the schedule/i.test(html)) out.status = "not_released";
-  else if (/<span>Schedule<\/span>/.test(html)) out.status = "posted";
+  if (/has not released the schedule/i.test(html) && !out.games.length) out.status = "not_released";
+  else if (out.games.length || /<span>Schedule<\/span>/.test(html)) out.status = "posted";
   return out;
 }
 
@@ -176,4 +200,7 @@ async function main() {
   log(changed ? "Scores changed; wrote docs/data.json" : "Hourly refresh; wrote docs/data.json");
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+// Run only when started directly (tests import parseTMHtml without running a pull).
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((e) => { console.error(e); process.exit(1); });
+}

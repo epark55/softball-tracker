@@ -159,10 +159,19 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
 
   /* which team this viewer follows: their own pick, remembered on this device */
   var KEY = "follow-team";
-  function followId(){ var v=null; try{ v=localStorage.getItem(KEY); }catch(e){} if (v && cfg && (cfg.gcTeams||[]).some(function(t){return t.id===v;})) return v; return cfg && cfg.follow; }
-  function fillFollow(roster){
-    var sel=$("follow"); var cur=followId();
-    var opts=(cfg.gcTeams||[]).map(function(t){ return '<option value="'+esc(t.id)+'"'+(t.id===cur?' selected':'')+'>'+esc(t.name)+'</option>'; }).join("");
+  /* any team in the field can be followed, including teams without a public GameChanger page */
+  function defaultFollowName(){ var t = (cfg.gcTeams||[]).find(function(t){ return t.id===cfg.follow; }); return t ? t.name : null; }
+  function followTeamOf(roster){
+    var v=null; try{ v=localStorage.getItem(KEY); }catch(e){}
+    var gc = v && (cfg.gcTeams||[]).find(function(t){ return t.id===v; }); if (gc) v = gc.name;   /* older saved choice */
+    var pick = v && roster.find(function(r){ return TL.similar(r.name, v) >= 1; });
+    if (!pick){ var dn = defaultFollowName(); pick = dn && roster.find(function(r){ return TL.similar(r.name, dn) >= 1; }); }
+    return pick || null;
+  }
+  function fillFollow(roster, cur){
+    var sel=$("follow");
+    var opts=roster.slice().sort(function(a,b){ return a.name.localeCompare(b.name); })
+      .map(function(t){ return '<option value="'+esc(t.name)+'"'+(cur && t.key===cur.key?' selected':'')+'>'+esc(t.name)+'</option>'; }).join("");
     if (sel.dataset.v !== opts){ sel.innerHTML = opts; sel.dataset.v = opts; }
   }
   $("follow").addEventListener("change", function(e){ try{ localStorage.setItem(KEY, e.target.value); }catch(err){} render(); });
@@ -183,9 +192,11 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
     var pool = TL.poolGames(games, cfg), elim = TL.elimGames(games, cfg);
     var table = TL.table(pool, roster);
     var overall = TL.table(games, roster);
-    var fid = followId(); var followTeam = (cfg.gcTeams||[]).find(function(t){ return t.id===fid; });
-    var fk = followTeam ? TL.canon(followTeam.name, roster).key : null;
-    fillFollow(roster);
+    var followTeam = followTeamOf(roster);
+    var fk = followTeam ? followTeam.key : null;
+    fillFollow(roster, followTeam);
+    var field = table.filter(function(x){ return x.inField; });
+    var ab = TL.actualBracket(elim, field, cfg);
 
     /* team card */
     if (followTeam){
@@ -199,6 +210,11 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
       var nextHtml = nowHtml + (nextG ? (function(){ var opp = nextG.a.k===fk ? nextG.b : nextG.a;
           return '<div class="next"><div class="eyebrow">Next game</div><strong>' + esc(fmtTime(nextG.start)) + ' vs. ' + esc(opp.n) + '</strong><div>' + esc(fmtDay(nextG.start)) + '</div></div>'; })()
         : (nowG ? '' : mineGames.length ? '<div class="next">All scheduled games are final.</div>' : '<div class="next">No games found for these dates yet.</div>'));
+      var bst = ab && ab.status[fk], statusHtml = '';
+      if (ab && ab.champion && ab.champion.k === fk) statusHtml = '<div class="next"><div class="eyebrow">Bracket</div><strong>Champions</strong></div>';
+      else if (bst && bst.out) statusHtml = '<div class="next"><div class="eyebrow">Bracket</div><strong>Out in the ' + esc((ab.rounds.find(function(rd){ return rd.games.some(function(g){ return g.round === bst.outRound; }); }) || {name:"bracket"}).name.toLowerCase()) + '</strong><div>Pick another team above to keep following the bracket.</div></div>';
+      else if (bst) statusHtml = '<div class="next"><div class="eyebrow">Bracket</div><strong>Still alive</strong></div>';
+      nextHtml = statusHtml + nextHtml;
       $("team").innerHTML = '<div class="teamcard"><h3>' + esc(followTeam.name) + '</h3><div class="rec num">' +
         '<div><b>' + r.w + '-' + r.l + (r.tie?'-'+r.tie:'') + '</b><span>Record</span></div>' +
         '<div><b>' + (r.rd>0?'+':'') + r.rd + '</b><span>Run diff</span></div>' +
@@ -227,9 +243,9 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
           var aw = g.final && g.a.s > g.b.s, bw = g.final && g.b.s > g.a.s;
           var mine = g.a.k===fk || g.b.k===fk;
           var onField = TL.inProgress(g, Date.now());
-          var chip = g.conflict ? '<span class="chip conf">Scores differ</span>' : g.final ? '<span class="chip final">Final · GC</span>' : g.live ? '<span class="chip live">Live</span>' : onField ? '<span class="chip live">In progress</span>' : '<span class="chip up">Upcoming</span>';
+          var chip = g.conflict ? '<span class="chip conf">Scores differ</span>' : g.final ? '<span class="chip final">' + (g.official ? 'Final · Official' : 'Final · GC') + '</span>' : g.live ? '<span class="chip live">Live</span>' : onField ? '<span class="chip live">In progress</span>' : '<span class="chip up">Upcoming</span>';
           var showS = g.final || g.live;
-          return '<div class="game"><div class="t">' + esc(fmtTime(g.start)) + '</div><div class="m">' +
+          return '<div class="game"><div class="t">' + esc(fmtTime(g.start)) + (g.tm && g.tm.no ? '<br>' + esc(g.tm.no) : '') + '</div><div class="m">' +
             '<div><span class="n' + (aw?' w':'') + '">' + esc(g.a.n) + '</span><b>' + (showS?g.a.s:'') + '</b></div>' +
             '<div><span class="n' + (bw?' w':'') + '">' + esc(g.b.n) + '</span><b>' + (showS?g.b.s:'') + '</b></div></div>' +
             '<div class="chips" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">' + (mine?'<span class="chip mine">Your team</span>':'') + chip + '</div></div>';
@@ -242,7 +258,28 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
     var br = TL.buildBracket(seeds.list, elim, cfg.bracketSize || 0);
     var poolDone = pool.length > 0 && pool.every(function(g){ return g.final; });
     var b = "";
-    if (!br) b = '<p class="empty">The bracket appears once at least two tournament teams are known.</p>';
+    if (ab){
+      var seedOf = function(g, k){ return g.tm && g.tm.seeds && g.tm.seeds[k] ? g.tm.seeds[k] : ""; };
+      var aside = function(g, t, s){
+        var won = g.winner === t.k, lost = g.winner && g.winner !== t.k;
+        return '<div class="slot' + (won?' won':'') + (lost?' lost':'') + (t.k===fk?' me':'') + '"><span class="sd">' + seedOf(g, t.k) + '</span><span class="nm">' + esc(t.n) + '</span><b>' + (g.final || g.live ? s : '') + '</b></div>';
+      };
+      var acard = function(g){
+        var meta = g.conflict ? 'Scores differ, check GameChanger' : g.final ? (g.official ? 'Final · Official' : 'Final') : g.live ? 'Live' : TL.inProgress(g, Date.now()) ? 'In progress' : fmtTime(g.start) + ' · ' + fmtDay(g.start).split(",")[0];
+        if (g.tm && g.tm.loc) meta += ' · ' + g.tm.loc;
+        return '<div class="match">' + aside(g, g.a, g.a.s) + aside(g, g.b, g.b.s) + '<div class="meta">' + esc(meta) + '</div></div>';
+      };
+      var pcard = function(t){
+        return '<div class="match">' + (t ? '<div class="slot' + (t.k===fk?' me':'') + '"><span class="sd"></span><span class="nm">' + esc(t.n) + '</span><b></b></div>' : '<div class="slot tbd"><span class="sd"></span><span class="nm">TBD</span><b></b></div>') +
+          '<div class="slot tbd"><span class="sd"></span><span class="nm">TBD</span><b></b></div><div class="meta">Not scheduled yet</div></div>';
+      };
+      b += '<div class="sec-head" style="margin:0"><span class="chip final">From the scheduled bracket games</span><span class="muted" style="font-size:13px">' + ab.size + ' teams · GameChanger' + (snap && snap.tm && snap.tm.games && snap.tm.games.length ? ' + Tourney Machine' : '') + '</span></div>';
+      if (ab.champion) b += '<div class="champ"><span class="eyebrow">Champion</span><strong>' + esc(ab.champion.n) + '</strong></div>';
+      b += '<div class="bracket">' + ab.rounds.map(function(rd){ return '<div class="round"><div class="eyebrow">' + esc(rd.name) + '</div><div class="rmatches">' + rd.games.map(acard).join("") + rd.placeholders.map(pcard).join("") + '</div></div>'; }).join("") + '</div>';
+      if (ab.third) b += '<div class="round third"><div class="eyebrow">Consolation</div>' + acard(ab.third) + '</div>';
+      b += '<p class="muted" style="font-size:13px;margin:0">Built from the bracket games actually on the schedule. Live scores come from GameChanger; finals posted on Tourney Machine are treated as official.</p>';
+    }
+    else if (!br) b = '<p class="empty">The bracket appears once at least two tournament teams are known.</p>';
     else {
       var label = seeds.official ? "Seeded in the order entered in setup" : poolDone ? "Seeded from final pool standings" : "Projected from current pool standings";
       var tagCls = seeds.official || poolDone ? "chip final" : "chip up";
@@ -263,14 +300,14 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
       if (br.champion && !br.champion.tbd) b += '<div class="champ"><span class="eyebrow">Champion</span><strong>' + esc(br.champion.name) + '</strong></div>';
       b += '<div class="bracket">' + br.rounds.map(function(r){ return '<div class="round"><div class="eyebrow">' + esc(r.name) + '</div><div class="rmatches">' + r.matches.map(card).join("") + '</div></div>'; }).join("") + '</div>';
       if (br.third) b += '<div class="round third"><div class="eyebrow">Consolation (3rd place, if played)</div>' + card(br.third) + '</div>';
-      b += '<p class="muted" style="font-size:13px;margin:0">Winners move on when GameChanger shows a final between the two teams on bracket day. Seeds follow the official order once the director posts it.</p>';
+      b += '<p class="muted" style="font-size:13px;margin:0">Projected until the bracket games are on the schedule; then this switches to the real matchups.</p>';
     }
     var tm = snap && snap.tm;
     var tml = tmLinks(cfg);
     if (tml.length && tm){
       var divTxt = tml.length > 1 ? tml.length + " divisions" : "this division";
       if (tm.status==="not_released") b += '<div class="note"><strong>Tourney Machine hasn\'t posted pools or a bracket yet.</strong><span class="muted">It lists ' + tm.teams.length + ' teams across ' + divTxt + '. Until the director posts, the bracket above is built from GameChanger scores.</span></div>';
-      else if (tm.status==="posted") b += '<div class="note"><strong>Tourney Machine has posted the schedule.</strong><span class="muted">Check it for the official pools and bracket.</span>' + tml.map(function(u,i){ return '<a href="' + esc(u) + '" target="_blank" rel="noopener">Open division ' + (i+1) + ' on Tourney Machine</a>'; }).join("") + '</div>';
+      else if (tm.status==="posted" && !ab) b += '<div class="note"><strong>Tourney Machine has posted the schedule.</strong><span class="muted">Its games and finals are merged into this page.</span>' + tml.map(function(u,i){ return '<a href="' + esc(u) + '" target="_blank" rel="noopener">Open division ' + (i+1) + ' on Tourney Machine</a>'; }).join("") + '</div>';
       else if (tm.status==="error") b += '<div class="note warn">Couldn\'t read Tourney Machine on the last pull.</div>';
       if (tm.lastUpdated) b += '<p class="muted" style="font-size:13px;margin:0">Tourney Machine last updated ' + esc(tm.lastUpdated) + '.</p>';
     }
