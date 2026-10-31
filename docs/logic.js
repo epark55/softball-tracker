@@ -89,7 +89,18 @@ var TL = (function(){
         else if (!ex.final && rec.live && (!ex.live || (rec.a.s + rec.b.s) > (ex.a.s + ex.b.s))){ rec.sources = ex.sources; rec.end = rec.end || ex.end; map[key] = rec; }
       });
     });
-    return Object.keys(map).map(function(k){ return map[k]; }).sort(function(x,y){ return x.start < y.start ? -1 : x.start > y.start ? 1 : 0; });
+    var list = Object.keys(map).map(function(k){ return map[k]; });
+    /* A scorekeeper sometimes scores a game as a new entry and leaves the original listing behind.
+       Drop a never-started game when the same two teams already have a final the same day
+       and its start time is more than 3 hours past. */
+    var now = Date.now();
+    list = list.filter(function(g){
+      if (g.final || g.live || now - Date.parse(g.start) < 3*3600000) return true;
+      var d = localDate(g.start);
+      return !list.some(function(o){ return o !== g && o.final && localDate(o.start) === d &&
+        ((o.a.k===g.a.k && o.b.k===g.b.k) || (o.a.k===g.b.k && o.b.k===g.a.k)); });
+    });
+    return list.sort(function(x,y){ return x.start < y.start ? -1 : x.start > y.start ? 1 : 0; });
   }
   function standings(games){
     var t = {};
@@ -224,7 +235,8 @@ var TL = (function(){
         ms.push(m);
         nx.push(m.winner || {tbd:true, label: m.a && m.b && !m.a.tbd && !m.b.tbd ? (m.a.name + " / " + m.b.name) : "TBD"});
       }
-      rounds.push({name: roundName(cur.length), matches: ms}); cur = nx; first = false;
+      var byes = ms.filter(function(m){ return m.bye; }).length;
+      rounds.push({name: first && byes ? "Opening round" : roundName(cur.length), matches: ms}); cur = nx; first = false;
     }
     var third = null;
     if (rounds.length >= 2){

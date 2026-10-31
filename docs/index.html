@@ -248,7 +248,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
       var tagCls = seeds.official || poolDone ? "chip final" : "chip up";
       var side = function(t, s, won, lost){
         if (!t) return '<div class="slot bye"><span class="sd"></span><span class="nm">Bye</span><b></b></div>';
-        if (t.tbd) return '<div class="slot tbd"><span class="sd"></span><span class="nm">' + esc(t.label==="TBD"?"TBD":"Winner of " + t.label) + '</span><b></b></div>';
+        if (t.tbd) return '<div class="slot tbd"><span class="sd"></span><span class="nm">' + esc(t.label==="TBD"?"TBD":/^Semifinal/.test(t.label)?t.label:"Winner of " + t.label) + '</span><b></b></div>';
         var cls = "slot" + (won?" won":"") + (lost?" lost":"") + (t.key===fk?" me":"");
         return '<div class="' + cls + '"><span class="sd">' + t.seed + '</span><span class="nm">' + esc(t.name) + '</span><b>' + (s==null?"":s) + '</b></div>';
       };
