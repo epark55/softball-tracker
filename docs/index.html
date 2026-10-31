@@ -75,6 +75,7 @@ tr.me td{background:color-mix(in srgb,var(--optic) 18%,var(--surface))}
 .game .m div{display:flex;justify-content:space-between;gap:8px}
 .game .m span.n{overflow-wrap:anywhere}
 .game .m b{font-family:var(--display);font-size:18px;font-variant-numeric:tabular-nums}
+.game .m .fld{font-size:12px;color:var(--muted);display:block}
 .game .w{font-weight:600}
 .chip{font:600 11px/1 var(--body);padding:4px 7px;border-radius:999px;white-space:nowrap}
 .chip.final{background:var(--fg);color:var(--bg)}
@@ -247,7 +248,8 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
           var showS = g.final || g.live;
           return '<div class="game"><div class="t">' + esc(fmtTime(g.start)) + (g.tm && g.tm.no ? '<br>' + esc(g.tm.no) : '') + '</div><div class="m">' +
             '<div><span class="n' + (aw?' w':'') + '">' + esc(g.a.n) + '</span><b>' + (showS?g.a.s:'') + '</b></div>' +
-            '<div><span class="n' + (bw?' w':'') + '">' + esc(g.b.n) + '</span><b>' + (showS?g.b.s:'') + '</b></div></div>' +
+            '<div><span class="n' + (bw?' w':'') + '">' + esc(g.b.n) + '</span><b>' + (showS?g.b.s:'') + '</b></div>' +
+            (g.tm && g.tm.loc ? '<div class="fld">' + esc(g.tm.loc) + '</div>' : '') + '</div>' +
             '<div class="chips" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">' + (mine?'<span class="chip mine">Your team</span>':'') + chip + '</div></div>';
         }).join("") + '</div>';
       }).join("");
