@@ -48,5 +48,14 @@
     "NJ PRIDE 14 KEITH",
     "Unity Torres/Delhoyo"
   ],
-  "seedOrder": []
+  "seedOrder": [],
+  "ignoreReports": [
+    {
+      "team": "Unity 14u Rodgers - PA",
+      "opponent": "Team PA 2030 Kammerdeiner",
+      "start": "2026-10-31T20:00:00.000Z",
+      "score": "7-0",
+      "why": "Entered in error; game was played at 4:00 PM"
+    }
+  ]
 }

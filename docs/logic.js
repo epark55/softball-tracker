@@ -80,6 +80,10 @@ var TL = (function(){
         var pair = [mine,theirs].sort(function(a,b){ return a.k < b.k ? -1 : 1; });
         var key = g.start_ts.slice(0,16) + "|" + pair[0].k + "|" + pair[1].k;
         var rec = {key:key, start:g.start_ts, end:g.end_ts||null, a:pair[0], b:pair[1], final:!!done, live:live, status:g.game_status||null, sources:[id], conflict:false};
+        /* a report someone has flagged as wrong in tournament.json ("ignoreReports"): skip it while it still says that */
+        if ((cfg.ignoreReports || []).some(function(x){
+              return similar(x.team, f.name) >= 1 && similar(x.opponent, opp) >= 1 && (!x.start || Math.abs(Date.parse(x.start) - Date.parse(g.start_ts)) < 60000) &&
+                     (!x.score || (hasScore && x.score === g.score.team + "-" + g.score.opponent_team)); })) return;
         /* no real game is final within 45 minutes of its start: that's a scoring mistake, so show it as not started */
         if (rec.final && nowMs < Date.parse(g.start_ts) + 45*60000){ rec.final = false; rec.a.s = rec.b.s = null; rec.early = true; }
         (map[key] = map[key] || []).push(rec);

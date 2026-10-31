@@ -22,6 +22,7 @@ The page updates within a few minutes.
 | `tmUrls` | Tourney Machine division links. List every division that shares the same pools and bracket. |
 | `gcTeams` | Each team's GameChanger id and name. The id is the part after `/teams/` in its GameChanger link. |
 | `excludeTeams` | Teams on Tourney Machine's list that aren't actually playing |
+| `ignoreReports` | A wrong score one team's GameChanger page reports, to skip: `{team, opponent, start, score: "7-0"}`. Skipped only while it still says that score. |
 | `seedOrder` | Official seeds once the director posts them, 1st seed first. Leave `[]` to seed from pool standings. |
 
 ## Where the data comes from
