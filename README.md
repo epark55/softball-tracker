@@ -26,8 +26,10 @@ The page updates within a few minutes.
 
 ## How it works
 
-- `.github/workflows/update.yml` runs `scripts/update.mjs` every 5 minutes. Outside the
-  tournament dates it exits right away; outside game hours it checks once an hour.
+- `.github/workflows/update.yml` runs `scripts/loop.sh`, one long job that runs
+  `scripts/update.mjs` every 3 minutes for about 6 hours and then starts its own next run.
+  A timed schedule restarts it if that chain ever breaks. Outside game hours `update.mjs`
+  checks once an hour; on weekends with no tournament set up it follows our team only.
 - The script saves `docs/data.json` only when something changed, which keeps the history short.
 - `docs/index.html` is the page; it reloads `data.json` every minute.
 - `docs/logic.js` holds the matching, standings and bracket rules shared by both.
