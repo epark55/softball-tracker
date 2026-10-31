@@ -29,4 +29,5 @@ jobs:
       - name: Keep scores updated
         env:
           GH_TOKEN: ${{ github.token }}
-        run: bash scripts/loop.sh
+        # run a private copy, so the loop's own git pulls can't change the script while it runs
+        run: cp scripts/loop.sh "$RUNNER_TEMP/loop.sh" && bash "$RUNNER_TEMP/loop.sh"

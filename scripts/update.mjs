@@ -13,6 +13,7 @@ const TL = require("../docs/logic.js");
 const ROOT = new URL("..", import.meta.url).pathname;
 const CFG_PATH = ROOT + "tournament.json";
 const OUT_PATH = ROOT + "docs/data.json";
+const LIVE_PATH = process.env.LIVE_PATH || ROOT + ".live.json";
 const GC = "https://api.team-manager.gc.com/public/teams/";
 const UA = "Mozilla/5.0 (compatible; softball-tracker; +https://github.com)";
 const FORCE = process.env.FORCE === "1";
@@ -194,6 +195,11 @@ async function main() {
   // or once an hour so the page shows it is still being checked.
   const changed = cfgChanged || !sameScores(prevSnap, snap);
   const stale = now - (prevSnap.fetchedAt || 0) > 60 * 60000;
+  // Every check also writes a "live" copy with the check time. scripts/loop.sh publishes it on a
+  // side branch (no site rebuild), so the page can say "checked 2 min ago" even when no score moved.
+  const liveSnap = changed || stale ? snap : { ...prevSnap, checkedAt: now };
+  if (cfg.auto && prevSnap.ourAll) liveSnap.feeds = { ...liveSnap.feeds, [cfg.follow]: { ...(liveSnap.feeds[cfg.follow] || {}), all: prevSnap.ourAll } };
+  writeFileSync(LIVE_PATH, JSON.stringify({ base, cfg, snap: liveSnap }) + "\n");
   if (!changed && !stale) { log("No score changes."); return; }
   if (cfg.auto && prevSnap.ourAll) { snap.feeds[cfg.follow] = { ...(snap.feeds[cfg.follow] || {}), all: prevSnap.ourAll }; snap.allAt = prevSnap.allAt || now; }
   writeFileSync(OUT_PATH, JSON.stringify({ base, cfg, snap }, null, 1) + "\n");

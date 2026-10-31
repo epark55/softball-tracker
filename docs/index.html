@@ -111,6 +111,7 @@ tr.me td{background:color-mix(in srgb,var(--optic) 18%,var(--surface))}
 .champ strong{font-family:var(--display);font-size:24px;text-transform:uppercase;letter-spacing:.02em}
 @media (max-width:520px){.row2{grid-template-columns:1fr}.game{grid-template-columns:56px 1fr}.game .chips{grid-column:2}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.linkbtn{font:inherit;color:var(--accent);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
 .follow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 .follow select{font:15px var(--body);padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);max-width:100%}
 footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
@@ -185,8 +186,12 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
     $("h-dates").textContent = fmtDate(cfg.dateStart) + (cfg.dateEnd!==cfg.dateStart ? " – " + fmtDate(cfg.dateEnd) : "") + (cfg.venue ? " · " + cfg.venue : "");
     var fetched = snap && snap.fetchedAt;
     var liveNow = TL.mergeGames(cfg, snap, TL.buildRoster(cfg, snap)).filter(function(g){ return TL.inProgress(g, Date.now()); }).length;
-    $("st-text").innerHTML = (fetched ? '<span class="dot live"></span>Updated ' + esc(ago(fetched)) + ' from GameChanger' : '<span class="dot"></span>No scores pulled yet') +
-      (liveNow ? ' · <strong>' + liveNow + ' game' + (liveNow>1?'s':'') + ' on the field</strong>' : '') + ' · checked every 5–15 min';
+    var checked = snap && (snap.checkedAt || snap.fetchedAt);
+    $("st-text").innerHTML = (checked ? '<span class="dot live"></span>Checked GameChanger ' + esc(ago(checked)) : '<span class="dot"></span>No scores pulled yet') +
+      (liveNow ? ' · <strong>' + liveNow + ' game' + (liveNow>1?'s':'') + ' on the field</strong>' : '') +
+      (fetched && checked && checked - fetched > 5*60000 ? ' · last score change ' + esc(ago(fetched)) : '') +
+      ' · <button id="reload" type="button" class="linkbtn">Refresh</button>';
+    var rb = $("reload"); if (rb) rb.onclick = function(){ rb.disabled = true; rb.textContent = "Refreshing…"; load(); };
 
     var roster = TL.buildRoster(cfg, snap);
     var games = TL.mergeGames(cfg, snap, roster);
@@ -322,11 +327,19 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
 
   }
 
+  /* the job publishes every check to the repository's "live" branch (no site rebuild needed) */
+  var LIVE_URL = (function(){ var owner = location.hostname.split(".")[0], repo = location.pathname.split("/").filter(Boolean)[0] || "softball-tracker";
+    return "https://raw.githubusercontent.com/" + owner + "/" + repo + "/live/data.json"; })();
   async function load(){
     try {
-      var r = await fetch("data.json?t=" + Date.now(), {cache:"no-store"});
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      var d = await r.json(); cfg = d.cfg || null; snap = d.snap || null; msg(null); render();
+      var d = null, site = null;
+      try { var lr = await fetch(LIVE_URL + "?t=" + Date.now(), {cache:"no-store"}); if (lr.ok) d = await lr.json(); } catch(e){}
+      try { var r = await fetch("data.json?t=" + Date.now(), {cache:"no-store"}); if (r.ok) site = await r.json(); } catch(e){}
+      /* use whichever copy is newer; the site's copy wins when settings changed since the last check */
+      var t = function(x){ return x && x.snap ? (x.snap.checkedAt || x.snap.fetchedAt || 0) : 0; };
+      if (!d || (site && t(site) >= t(d)) || (site && JSON.stringify(site.base) !== JSON.stringify(d.base))) d = site;
+      if (!d) throw new Error("no data");
+      cfg = d.cfg || null; snap = d.snap || null; msg(null); render();
     } catch(e){ msg("Couldn't load the latest scores. This page tries again every minute."); if (cfg) render(); }
   }
   load();

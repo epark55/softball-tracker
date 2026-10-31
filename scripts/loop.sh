@@ -23,7 +23,17 @@ git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 end=$((SECONDS + 5*3600 + 40*60))
 while [ $SECONDS -lt $end ]; do
   git pull -q --rebase origin main || git rebase --abort || true
+  rm -f .live.json
   node scripts/update.mjs || echo "update.mjs failed this time; trying again next loop"
+  # Publish the latest check (with its time) to the "live" branch as a single commit that replaces
+  # the last one. The page reads it straight from there, so "checked 2 min ago" stays true without
+  # rebuilding the site every 3 minutes.
+  if [ -s .live.json ]; then
+    blob=$(git hash-object -w .live.json)
+    tree=$(printf '100644 blob %s\tdata.json\n' "$blob" | git mktree)
+    commit=$(git commit-tree "$tree" -m "Latest check")
+    git push -q -f origin "$commit:refs/heads/live" || echo "couldn't publish the latest check"
+  fi
   if ! git diff --quiet -- docs/data.json; then
     git add docs/data.json
     git commit -q -m "Update scores"
