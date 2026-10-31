@@ -209,17 +209,19 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
       var r = overall.find(function(x){ return x.key===fk; }) || {w:0,l:0,tie:0,rd:0};
       var mineGames = games.filter(function(g){ return g.a.k===fk || g.b.k===fk; });
       var nowG = mineGames.find(function(g){ return TL.inProgress(g, Date.now()); });
-      var nextG = mineGames.find(function(g){ return !g.final && g !== nowG; });
+      var nextG = mineGames.find(function(g){ return !g.final && g !== nowG && !TL.unreported(g, Date.now()); });
+      var missing = mineGames.filter(function(g){ return TL.unreported(g, Date.now()); });
       var nowHtml = nowG ? (function(){ var me = nowG.a.k===fk ? nowG.a : nowG.b, opp = nowG.a.k===fk ? nowG.b : nowG.a;
           return '<div class="next"><div class="eyebrow"><span class="dot live"></span>Now playing</div><strong>vs. ' + esc(opp.n) + '</strong><div class="nowscore num">' +
             (nowG.live ? me.s + ' – ' + opp.s + ' <span>' + (me.s>opp.s?'leading':me.s<opp.s?'trailing':'tied') + '</span>' : '<span>Waiting for a score from GameChanger</span>') + '</div></div>'; })() : '';
       var nextHtml = nowHtml + (nextG ? (function(){ var opp = nextG.a.k===fk ? nextG.b : nextG.a;
           return '<div class="next"><div class="eyebrow">Next game</div><strong>' + esc(fmtTime(nextG.start)) + ' vs. ' + esc(opp.n) + '</strong><div>' + esc(fmtDay(nextG.start)) + '</div></div>'; })()
-        : (nowG ? '' : mineGames.length ? '<div class="next">All scheduled games are final.</div>' : '<div class="next">No games found for these dates yet.</div>'));
+        : (nowG || missing.length ? '' : mineGames.length ? '<div class="next">All scheduled games are final.</div>' : '<div class="next">No games found for these dates yet.</div>'));
       var bst = ab && ab.status[fk], statusHtml = '';
       if (ab && ab.champion && ab.champion.k === fk) statusHtml = '<div class="next"><div class="eyebrow">Bracket</div><strong>Champions</strong></div>';
       else if (bst && bst.out) statusHtml = '<div class="next"><div class="eyebrow">Bracket</div><strong>Out in the ' + esc((ab.rounds.find(function(rd){ return rd.games.some(function(g){ return g.round === bst.outRound; }); }) || {name:"bracket"}).name.toLowerCase()) + '</strong><div>Pick another team above to keep following the bracket.</div></div>';
       else if (bst) statusHtml = '<div class="next"><div class="eyebrow">Bracket</div><strong>Still alive</strong></div>';
+      if (missing.length) nextHtml = '<div class="next"><div class="eyebrow">No score reported</div>' + missing.map(function(g){ var opp = g.a.k===fk ? g.b : g.a; return esc(fmtTime(g.start)) + ' vs. ' + esc(opp.n); }).join('<br>') + '</div>' + nextHtml;
       nextHtml = statusHtml + nextHtml;
       $("team").innerHTML = '<div class="teamcard"><h3>' + esc(followTeam.name) + '</h3><div class="rec num">' +
         '<div><b>' + r.w + '-' + r.l + (r.tie?'-'+r.tie:'') + '</b><span>Record</span></div>' +
@@ -249,7 +251,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
           var aw = g.final && g.a.s > g.b.s, bw = g.final && g.b.s > g.a.s;
           var mine = g.a.k===fk || g.b.k===fk;
           var onField = TL.inProgress(g, Date.now());
-          var chip = g.conflict ? '<span class="chip conf">Scores differ</span>' : g.final ? '<span class="chip final">' + (g.official ? 'Final · Official' : 'Final · GC') + '</span>' : g.live ? '<span class="chip live">Live</span>' : onField ? '<span class="chip live">In progress</span>' : '<span class="chip up">Upcoming</span>';
+          var chip = g.conflict ? '<span class="chip conf">Scores differ</span>' : g.final ? '<span class="chip final">' + (g.official ? 'Final · Official' : 'Final · GC') + '</span>' : g.live ? '<span class="chip live">Live</span>' : onField ? '<span class="chip live">In progress</span>' : TL.unreported(g, Date.now()) ? '<span class="chip conf">No score reported</span>' : '<span class="chip up">Upcoming</span>';
           var showS = g.final || g.live;
           return '<div class="game"><div class="t">' + esc(fmtTime(g.start)) + (g.tm && g.tm.no ? '<br>' + esc(g.tm.no) : '') + '</div><div class="m">' +
             '<div><span class="n' + (aw?' w':'') + '">' + esc(g.a.n) + '</span><b>' + (showS?g.a.s:'') + '</b></div>' +
@@ -272,7 +274,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
         return '<div class="slot' + (won?' won':'') + (lost?' lost':'') + (t.k===fk?' me':'') + '"><span class="sd">' + seedOf(g, t.k) + '</span><span class="nm">' + esc(t.n) + '</span><b>' + (g.final || g.live ? s : '') + '</b></div>';
       };
       var acard = function(g){
-        var meta = g.conflict ? 'Scores differ, check GameChanger' : g.final ? (g.official ? 'Final · Official' : 'Final') : g.live ? 'Live' : TL.inProgress(g, Date.now()) ? 'In progress' : fmtTime(g.start) + ' · ' + fmtDay(g.start).split(",")[0];
+        var meta = g.conflict ? 'Scores differ, check GameChanger' : g.final ? (g.official ? 'Final · Official' : 'Final') : g.live ? 'Live' : TL.inProgress(g, Date.now()) ? 'In progress' : TL.unreported(g, Date.now()) ? 'No score reported' : fmtTime(g.start) + ' · ' + fmtDay(g.start).split(",")[0];
         if (g.tm && g.tm.loc) meta += ' · ' + g.tm.loc;
         return '<div class="match">' + aside(g, g.a, g.a.s) + aside(g, g.b, g.b.s) + '<div class="meta">' + esc(meta) + '</div></div>';
       };

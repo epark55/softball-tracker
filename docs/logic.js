@@ -185,7 +185,13 @@ var TL = (function(){
     if (g.final) return false;
     if (g.live) return true;
     var s = Date.parse(g.start), e = g.end ? Date.parse(g.end) : s + 2*3600000;
-    return now >= s && now <= e + 30*60000;
+    return now >= s && now <= e;
+  }
+  /* the scheduled end has passed and no one has reported a score */
+  function unreported(g, now){
+    if (g.final || g.live) return false;
+    var s = Date.parse(g.start), e = g.end ? Date.parse(g.end) : s + 2*3600000;
+    return now > e;
   }
   /* GameChanger team ids whose games are on the field now */
   function liveTeamIds(games, roster, now){
@@ -349,7 +355,7 @@ var TL = (function(){
 
   return {actualBracket:actualBracket, extractBody:extractBody, parseTabId:parseTabId, gcIdFromLink:gcIdFromLink, norm:norm, similar:similar, inWindow:inWindow, localDate:localDate,
           buildRoster:buildRoster, canon:canon, mergeGames:mergeGames, standings:standings, parseTM:parseTM, combineTM:combineTM, trimGames:trimGames, TZ:TZ,
-          inProgress:inProgress, liveTeamIds:liveTeamIds, inGameHours:inGameHours, teamsForFull:teamsForFull, teamsForLive:teamsForLive,
+          inProgress:inProgress, unreported:unreported, liveTeamIds:liveTeamIds, inGameHours:inGameHours, teamsForFull:teamsForFull, teamsForLive:teamsForLive,
           poolGames:poolGames, elimGames:elimGames, table:table, seedList:seedList, slotOrder:slotOrder, buildBracket:buildBracket, bracketDay:bracketDay};
 })();
 if (typeof module !== "undefined" && module.exports) module.exports = TL;
