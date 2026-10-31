@@ -80,8 +80,8 @@ var TL = (function(){
         var pair = [mine,theirs].sort(function(a,b){ return a.k < b.k ? -1 : 1; });
         var key = g.start_ts.slice(0,16) + "|" + pair[0].k + "|" + pair[1].k;
         var rec = {key:key, start:g.start_ts, end:g.end_ts||null, a:pair[0], b:pair[1], final:!!done, live:live, status:g.game_status||null, sources:[id], conflict:false};
-        /* a game can't be final before it starts: that's a scoring mistake, so show it as not started */
-        if (rec.final && nowMs < Date.parse(g.start_ts)){ rec.final = false; rec.a.s = rec.b.s = null; rec.early = true; }
+        /* no real game is final within 45 minutes of its start: that's a scoring mistake, so show it as not started */
+        if (rec.final && nowMs < Date.parse(g.start_ts) + 45*60000){ rec.final = false; rec.a.s = rec.b.s = null; rec.early = true; }
         (map[key] = map[key] || []).push(rec);
       });
     });
