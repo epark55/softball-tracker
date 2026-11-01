@@ -106,9 +106,9 @@
   "ignoreReports": []
  },
  "snap": {
-  "fetchedAt": 1793544553682,
-  "checkedAt": 1793544553682,
-  "fullAt": 1793544553682,
+  "fetchedAt": 1793544931702,
+  "checkedAt": 1793544931702,
+  "fullAt": 1793544931702,
   "tmAt": 1793544553682,
   "allAt": 0,
   "feeds": {
@@ -172,7 +172,7 @@
       "game_status": "new"
      }
     ],
-    "fetchedAt": 1793544558787
+    "fetchedAt": 1793544936195
    },
    "7GqzHSsWfAiG": {
     "name": "Tri-State Thunder Gold 14U",
@@ -234,7 +234,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793544556538
+    "fetchedAt": 1793544934182
    },
    "9OmIn3ns4vv7": {
     "name": "Team PA 2030 Kammerdeiner",
@@ -307,7 +307,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793544554467
+    "fetchedAt": 1793544932037
    },
    "bWAgl1fokEJ8": {
     "name": "Unity 14U Williams",
@@ -369,7 +369,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793544555271
+    "fetchedAt": 1793544932812
    },
    "jRj0Mi2IoFR2": {
     "name": "Impact Caymol Dibartolomeo 14U",
@@ -431,7 +431,7 @@
       "game_status": "new"
      }
     ],
-    "fetchedAt": 1793544557256
+    "fetchedAt": 1793544934864
    },
    "m0QuD26jFKCE": {
     "name": "Unity 14u Rodgers - PA",
@@ -493,7 +493,7 @@
       "game_status": "new"
      }
     ],
-    "fetchedAt": 1793544555949
+    "fetchedAt": 1793544933425
    },
    "q1r5h3BZmdPR": {
     "name": "Outlaws Premier 2031 Lucia",
@@ -548,11 +548,14 @@
       "opponent_team": {
        "name": "Unity 14u Rodgers - PA"
       },
-      "score": null,
-      "game_status": null
+      "score": {
+       "team": 0,
+       "opponent_team": 0
+      },
+      "game_status": "new"
      }
     ],
-    "fetchedAt": 1793544558075
+    "fetchedAt": 1793544935446
    },
    "vaGizeBjZImX": {
     "name": "Team PA Rasbach 13U",
@@ -614,7 +617,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793544559435
+    "fetchedAt": 1793544936805
    }
   },
   "tm": {
