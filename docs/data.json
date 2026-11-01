@@ -106,9 +106,9 @@
   "ignoreReports": []
  },
  "snap": {
-  "fetchedAt": 1793552466336,
-  "checkedAt": 1793552466336,
-  "fullAt": 1793552466336,
+  "fetchedAt": 1793552656435,
+  "checkedAt": 1793552656435,
+  "fullAt": 1793552656435,
   "tmAt": 1793552466336,
   "allAt": 0,
   "feeds": {
@@ -172,7 +172,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793552470397
+    "fetchedAt": 1793552660890
    },
    "7GqzHSsWfAiG": {
     "name": "Tri-State Thunder Gold 14U",
@@ -243,12 +243,12 @@
       },
       "score": {
        "team": 0,
-       "opponent_team": 1
+       "opponent_team": 2
       },
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793552468433
+    "fetchedAt": 1793552658841
    },
    "9OmIn3ns4vv7": {
     "name": "Team PA 2030 Kammerdeiner",
@@ -321,7 +321,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793552466617
+    "fetchedAt": 1793552657044
    },
    "bWAgl1fokEJ8": {
     "name": "Unity 14U Williams",
@@ -397,7 +397,7 @@
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793552467183
+    "fetchedAt": 1793552657673
    },
    "jRj0Mi2IoFR2": {
     "name": "Impact Caymol Dibartolomeo 14U",
@@ -459,7 +459,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793552469092
+    "fetchedAt": 1793552659514
    },
    "m0QuD26jFKCE": {
     "name": "Unity 14u Rodgers - PA",
@@ -521,7 +521,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793552467839
+    "fetchedAt": 1793552658257
    },
    "q1r5h3BZmdPR": {
     "name": "Outlaws Premier 2031 Lucia",
@@ -597,7 +597,7 @@
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793552469758
+    "fetchedAt": 1793552660147
    },
    "vaGizeBjZImX": {
     "name": "Team PA Rasbach 13U",
@@ -659,7 +659,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793552471306
+    "fetchedAt": 1793552661747
    }
   },
   "tm": {
