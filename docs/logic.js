@@ -48,7 +48,8 @@ var TL = (function(){
     (cfg.gcTeams||[]).forEach(function(t){ add(t.name, {gcId:t.id}); });
     var out = (cfg.excludeTeams || []).filter(Boolean);
     function excluded(n){ return out.some(function(x){ return similar(x, n) >= MATCH; }); }
-    ((snap && snap.tm && snap.tm.teams) || []).forEach(function(n){ if (!excluded(n)) add(n, {tm:true}); });
+    /* following just our team between tournaments: last tournament's team list doesn't apply */
+    if (!cfg.auto) ((snap && snap.tm && snap.tm.teams) || []).forEach(function(n){ if (!excluded(n)) add(n, {tm:true}); });
     return roster;
   }
   function canon(name, roster){

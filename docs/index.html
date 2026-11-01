@@ -338,6 +338,16 @@ footer p{margin:0 0 8px}
       if (tm.lastUpdated) b += '<p class="muted" style="font-size:13px;margin:0">Tourney Machine last updated ' + esc(tm.lastUpdated) + '.</p>';
     }
     $("bracket").innerHTML = b;
+    if (cfg.auto && (cfg.noGames || !games.length)){
+      /* between tournaments: nothing on the team's schedule yet */
+      var who = followTeam ? followTeam.name : 'The team';
+      $("h-dates").textContent = "Between tournaments";
+      $("team").innerHTML = '<div class="teamcard"><h3>' + esc(who) + '</h3><div class="next">No games on GameChanger right now. When the next tournament is on the team\'s schedule, it shows up here on its own.</div></div>';
+      $("stand").innerHTML = '<p class="empty">Standings appear once the next tournament starts.</p>';
+      $("games").innerHTML = '<p class="empty">No games on the schedule right now.</p>';
+      $("bracket").innerHTML = '<p class="empty">The bracket appears once the next tournament is set up.</p>';
+      return;
+    }
     if (cfg.auto){
       var autoNote = '<div class="note"><strong>No tournament set up for this weekend yet.</strong><span class="muted">This page is following ' + esc(followTeam ? followTeam.name : 'our team') + '\'s games on its own. Full standings and the bracket appear once the weekend\'s tournament is set up.</span></div>';
       $("stand").innerHTML = autoNote; $("bracket").innerHTML = '<p class="empty">The bracket appears once the tournament is set up.</p>';

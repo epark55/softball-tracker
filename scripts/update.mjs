@@ -131,8 +131,8 @@ async function main() {
     }
     const wk = weekendOf(ourGames, today);
     const name = (base.gcTeams || []).find((t) => t.id === ourId)?.name || prev.cfg?.gcTeams?.[0]?.name || "Our team";
-    const when = !wk ? "Schedule" : wk.dateEnd < today ? "Last weekend" : wk.dateStart > addDays(today, 6) ? "Next games" : "This weekend";
-    cfg = { auto: true, title: name + " · " + when,
+    const when = !wk ? "" : wk.dateEnd < today ? "Last weekend" : wk.dateStart > addDays(today, 6) ? "Next games" : "This weekend";
+    cfg = { auto: true, noGames: !wk, title: name + (when ? " · " + when : ""),
             venue: "", dateStart: wk ? wk.dateStart : today, dateEnd: wk ? wk.dateEnd : today,
             bracketStart: wk ? wk.dateEnd : today, bracketSize: 0, follow: ourId, tmUrls: [],
             gcTeams: [{ id: ourId, name }], excludeTeams: [], seedOrder: [] };
