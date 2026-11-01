@@ -84,8 +84,6 @@ var TL = (function(){
         if ((cfg.ignoreReports || []).some(function(x){
               return similar(x.team, f.name) >= 1 && similar(x.opponent, opp) >= 1 && (!x.start || Math.abs(Date.parse(x.start) - Date.parse(g.start_ts)) < 60000) &&
                      (!x.score || (hasScore && x.score === g.score.team + "-" + g.score.opponent_team)); })) return;
-        /* no real game is final within 45 minutes of its start: that's a scoring mistake, so show it as not started */
-        if (rec.final && nowMs < Date.parse(g.start_ts) + 45*60000){ rec.final = false; rec.a.s = rec.b.s = null; rec.early = true; }
         (map[key] = map[key] || []).push(rec);
       });
     });
@@ -94,12 +92,16 @@ var TL = (function(){
        same two teams on the same day as one game when their times are that close, and show the more
        believable time: the daytime one for a 12-hour slip, otherwise the later one. */
     function hourOf(ts){ return +new Date(ts).toLocaleString("en-US", {timeZone:TZ, hour:"numeric", hour12:false}); }
+    /* In single elimination the same two teams can't meet twice on bracket day, so there every
+       report of the pair is the same game, whatever time each page shows. */
+    var bDay = bracketDay(cfg);
     function compatible(t1, t2){ var d = Math.abs(Date.parse(t1) - Date.parse(t2)), h = 3600000;
-      return d <= 75*60000 || Math.abs(d - 12*h) <= 75*60000; }
+      return d <= 75*60000 || Math.abs(d - 12*h) <= 75*60000 || localDate(t1) >= bDay; }
     function better(t1, t2){
-      var d = Math.abs(Date.parse(t1) - Date.parse(t2));
-      if (d > 6*3600000){ var day1 = hourOf(t1) >= 6 && hourOf(t1) <= 21; return day1 ? t1 : t2; }
-      return Date.parse(t1) >= Date.parse(t2) ? t1 : t2;
+      var d = Math.abs(Date.parse(t1) - Date.parse(t2)), h = 3600000;
+      if (Math.abs(d - 12*h) <= 75*60000){ var day1 = hourOf(t1) >= 6 && hourOf(t1) <= 21; return day1 ? t1 : t2; }
+      if (d <= 75*60000) return Date.parse(t1) >= Date.parse(t2) ? t1 : t2;
+      return Date.parse(t1) <= Date.parse(t2) ? t1 : t2;   /* bracket day, far apart: the earlier listing */
     }
     var groups = {};
     Object.keys(map).forEach(function(k){ var r0 = map[k][0]; var gk = localDate(r0.start) + "|" + r0.a.k + "|" + r0.b.k; (groups[gk] = groups[gk] || []).push(k); });
@@ -116,6 +118,10 @@ var TL = (function(){
         }
       }
     });
+    /* no real game is final within 45 minutes of its start: that's a scoring mistake, so show it as not started */
+    Object.keys(map).forEach(function(k){ map[k].forEach(function(r){
+      if (r.final && nowMs < Date.parse(r.start) + 45*60000){ r.final = false; r.a.s = r.b.s = null; r.early = true; }
+    }); });
     /* each team's page reports the game separately; decide what to show when they differ */
     var list = Object.keys(map).map(function(k){
       var reps = map[k], srcs = [];
