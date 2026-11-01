@@ -106,9 +106,9 @@
   "ignoreReports": []
  },
  "snap": {
-  "fetchedAt": 1793571177574,
-  "checkedAt": 1793571177574,
-  "fullAt": 1793571177574,
+  "fetchedAt": 1793571553410,
+  "checkedAt": 1793571553410,
+  "fullAt": 1793571553410,
   "tmAt": 1793571177574,
   "allAt": 0,
   "feeds": {
@@ -172,7 +172,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793571181591
+    "fetchedAt": 1793571557363
    },
    "7GqzHSsWfAiG": {
     "name": "Tri-State Thunder Gold 14U",
@@ -248,7 +248,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793571179614
+    "fetchedAt": 1793571555504
    },
    "9OmIn3ns4vv7": {
     "name": "Team PA 2030 Kammerdeiner",
@@ -321,7 +321,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793571177953
+    "fetchedAt": 1793571553805
    },
    "bWAgl1fokEJ8": {
     "name": "Unity 14U Williams",
@@ -405,13 +405,13 @@
        "name": "Impact Caymol Dibartolomeo 14U"
       },
       "score": {
-       "team": 1,
+       "team": 2,
        "opponent_team": 3
       },
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793571178474
+    "fetchedAt": 1793571554310
    },
    "jRj0Mi2IoFR2": {
     "name": "Impact Caymol Dibartolomeo 14U",
@@ -496,12 +496,12 @@
       },
       "score": {
        "team": 3,
-       "opponent_team": 1
+       "opponent_team": 2
       },
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793571180240
+    "fetchedAt": 1793571556128
    },
    "m0QuD26jFKCE": {
     "name": "Unity 14u Rodgers - PA",
@@ -563,7 +563,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793571179075
+    "fetchedAt": 1793571554879
    },
    "q1r5h3BZmdPR": {
     "name": "Outlaws Premier 2031 Lucia",
@@ -653,7 +653,7 @@
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793571180778
+    "fetchedAt": 1793571556699
    },
    "vaGizeBjZImX": {
     "name": "Team PA Rasbach 13U",
@@ -715,7 +715,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793571182380
+    "fetchedAt": 1793571558086
    }
   },
   "tm": {
