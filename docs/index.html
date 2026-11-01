@@ -121,6 +121,10 @@ tr.me td{background:color-mix(in srgb,var(--optic) 18%,var(--surface))}
 .follow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 .follow select{font:15px var(--body);padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);max-width:100%}
 footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+footer p{margin:0 0 8px}
+.howto{gap:6px;margin-bottom:14px;font-size:13px;color:var(--fg)}
+.howto h2{font-size:13px;margin-bottom:2px}
+.howto p{margin:0}
 </style>
 </head>
 <body>
@@ -150,7 +154,14 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
     <div id="bracket"></div>
   </section>
 
-  <footer>Scores come from each team's public GameChanger page and may lag the field by a few minutes. Not affiliated with GameChanger or the tournament.</footer>
+  <footer>
+    <section class="howto" aria-labelledby="t-howto">
+      <h2 id="t-howto" class="eyebrow">Save to your home screen</h2>
+      <p><strong>iPhone:</strong> open this page in Safari, tap the Share button (square with an arrow), then <em>Add to Home Screen</em>.</p>
+      <p><strong>Android:</strong> open this page in Chrome, tap the ⋮ menu, then <em>Add to Home screen</em>.</p>
+    </section>
+    <p>Scores come from each team's public GameChanger page and may lag the field by a few minutes. Not affiliated with GameChanger or the tournament.</p>
+  </footer>
 </div>
 <script>/* always load the newest rules, not a cached copy */ document.write('<script src="logic.js?t=' + Math.floor(Date.now()/60000) + '"><\/script>');</script>
 <script>
