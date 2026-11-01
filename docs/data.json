@@ -106,10 +106,10 @@
   "ignoreReports": []
  },
  "snap": {
-  "fetchedAt": 1793543511788,
-  "checkedAt": 1793543511788,
-  "fullAt": 1793543511788,
-  "tmAt": 1793542945532,
+  "fetchedAt": 1793544553682,
+  "checkedAt": 1793544553682,
+  "fullAt": 1793544553682,
+  "tmAt": 1793544553682,
   "allAt": 0,
   "feeds": {
    "13tI2vPbkHn0": {
@@ -165,11 +165,14 @@
       "opponent_team": {
        "name": "Impact Caymol Dibartolomeo 14U"
       },
-      "score": null,
-      "game_status": null
+      "score": {
+       "team": 0,
+       "opponent_team": 0
+      },
+      "game_status": "new"
      }
     ],
-    "fetchedAt": 1793543516522
+    "fetchedAt": 1793544558787
    },
    "7GqzHSsWfAiG": {
     "name": "Tri-State Thunder Gold 14U",
@@ -231,7 +234,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793543514253
+    "fetchedAt": 1793544556538
    },
    "9OmIn3ns4vv7": {
     "name": "Team PA 2030 Kammerdeiner",
@@ -304,7 +307,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793543512143
+    "fetchedAt": 1793544554467
    },
    "bWAgl1fokEJ8": {
     "name": "Unity 14U Williams",
@@ -366,7 +369,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793543512736
+    "fetchedAt": 1793544555271
    },
    "jRj0Mi2IoFR2": {
     "name": "Impact Caymol Dibartolomeo 14U",
@@ -421,11 +424,14 @@
       "opponent_team": {
        "name": "Team PA Larcinese/Pinneri 13U"
       },
-      "score": null,
-      "game_status": null
+      "score": {
+       "team": 0,
+       "opponent_team": 0
+      },
+      "game_status": "new"
      }
     ],
-    "fetchedAt": 1793543514971
+    "fetchedAt": 1793544557256
    },
    "m0QuD26jFKCE": {
     "name": "Unity 14u Rodgers - PA",
@@ -480,11 +486,14 @@
       "opponent_team": {
        "name": "Outlaws Premier 2031 Lucia"
       },
-      "score": null,
-      "game_status": null
+      "score": {
+       "team": 0,
+       "opponent_team": 0
+      },
+      "game_status": "new"
      }
     ],
-    "fetchedAt": 1793543513554
+    "fetchedAt": 1793544555949
    },
    "q1r5h3BZmdPR": {
     "name": "Outlaws Premier 2031 Lucia",
@@ -543,7 +552,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793543515756
+    "fetchedAt": 1793544558075
    },
    "vaGizeBjZImX": {
     "name": "Team PA Rasbach 13U",
@@ -605,7 +614,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793543517175
+    "fetchedAt": 1793544559435
    }
   },
   "tm": {
