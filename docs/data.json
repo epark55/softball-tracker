@@ -106,9 +106,9 @@
   "ignoreReports": []
  },
  "snap": {
-  "fetchedAt": 1793536343621,
-  "checkedAt": 1793536343621,
-  "fullAt": 1793536343621,
+  "fetchedAt": 1793536722662,
+  "checkedAt": 1793536722662,
+  "fullAt": 1793536722662,
   "tmAt": 1793536343621,
   "allAt": 0,
   "feeds": {
@@ -169,7 +169,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793536349035
+    "fetchedAt": 1793536727566
    },
    "7GqzHSsWfAiG": {
     "name": "Tri-State Thunder Gold 14U",
@@ -228,7 +228,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793536346477
+    "fetchedAt": 1793536725280
    },
    "9OmIn3ns4vv7": {
     "name": "Team PA 2030 Kammerdeiner",
@@ -298,7 +298,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793536344125
+    "fetchedAt": 1793536723160
    },
    "bWAgl1fokEJ8": {
     "name": "Unity 14U Williams",
@@ -357,7 +357,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793536345052
+    "fetchedAt": 1793536723925
    },
    "jRj0Mi2IoFR2": {
     "name": "Impact Caymol Dibartolomeo 14U",
@@ -416,7 +416,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793536347315
+    "fetchedAt": 1793536726060
    },
    "m0QuD26jFKCE": {
     "name": "Unity 14u Rodgers - PA",
@@ -475,7 +475,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793536345751
+    "fetchedAt": 1793536724578
    },
    "q1r5h3BZmdPR": {
     "name": "Outlaws Premier 2031 Lucia",
@@ -534,7 +534,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793536348185
+    "fetchedAt": 1793536726827
    },
    "vaGizeBjZImX": {
     "name": "Team PA Rasbach 13U",
@@ -585,15 +585,18 @@
       "id": "05d12327-7767-4f45-b6a6-8a03f0704c07",
       "start_ts": "2026-11-01T13:00:00.000Z",
       "end_ts": "2026-11-01T14:00:00.000Z",
-      "home_away": null,
+      "home_away": "away",
       "opponent_team": {
        "name": "Unity 14U Williams"
       },
-      "score": null,
-      "game_status": null
+      "score": {
+       "team": 0,
+       "opponent_team": 0
+      },
+      "game_status": "new"
      }
     ],
-    "fetchedAt": 1793536349770
+    "fetchedAt": 1793536728256
    }
   },
   "tm": {
