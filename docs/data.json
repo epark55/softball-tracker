@@ -106,10 +106,10 @@
   "ignoreReports": []
  },
  "snap": {
-  "fetchedAt": 1793545120480,
-  "checkedAt": 1793545120480,
-  "fullAt": 1793545120480,
-  "tmAt": 1793544553682,
+  "fetchedAt": 1793545685083,
+  "checkedAt": 1793545685083,
+  "fullAt": 1793545685083,
+  "tmAt": 1793545685083,
   "allAt": 0,
   "feeds": {
    "13tI2vPbkHn0": {
@@ -167,12 +167,12 @@
       },
       "score": {
        "team": 0,
-       "opponent_team": 0
+       "opponent_team": 3
       },
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793545124995
+    "fetchedAt": 1793545689635
    },
    "7GqzHSsWfAiG": {
     "name": "Tri-State Thunder Gold 14U",
@@ -234,7 +234,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793545122988
+    "fetchedAt": 1793545687485
    },
    "9OmIn3ns4vv7": {
     "name": "Team PA 2030 Kammerdeiner",
@@ -307,7 +307,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793545121137
+    "fetchedAt": 1793545685472
    },
    "bWAgl1fokEJ8": {
     "name": "Unity 14U Williams",
@@ -369,7 +369,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793545121784
+    "fetchedAt": 1793545686282
    },
    "jRj0Mi2IoFR2": {
     "name": "Impact Caymol Dibartolomeo 14U",
@@ -425,13 +425,13 @@
        "name": "Team PA Larcinese/Pinneri 13U"
       },
       "score": {
-       "team": 0,
+       "team": 3,
        "opponent_team": 0
       },
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793545123589
+    "fetchedAt": 1793545688345
    },
    "m0QuD26jFKCE": {
     "name": "Unity 14u Rodgers - PA",
@@ -493,7 +493,7 @@
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793545122385
+    "fetchedAt": 1793545686831
    },
    "q1r5h3BZmdPR": {
     "name": "Outlaws Premier 2031 Lucia",
@@ -555,7 +555,7 @@
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793545124149
+    "fetchedAt": 1793545688915
    },
    "vaGizeBjZImX": {
     "name": "Team PA Rasbach 13U",
@@ -617,7 +617,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793545125751
+    "fetchedAt": 1793545690257
    }
   },
   "tm": {
