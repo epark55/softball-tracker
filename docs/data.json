@@ -106,9 +106,9 @@
   "ignoreReports": []
  },
  "snap": {
-  "fetchedAt": 1793548701354,
-  "checkedAt": 1793548701354,
-  "fullAt": 1793548701354,
+  "fetchedAt": 1793548890257,
+  "checkedAt": 1793548890257,
+  "fullAt": 1793548890257,
   "tmAt": 1793548511286,
   "allAt": 0,
   "feeds": {
@@ -167,12 +167,12 @@
       },
       "score": {
        "team": 0,
-       "opponent_team": 7
+       "opponent_team": 10
       },
-      "game_status": "live"
+      "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793548705711
+    "fetchedAt": 1793548894452
    },
    "7GqzHSsWfAiG": {
     "name": "Tri-State Thunder Gold 14U",
@@ -245,7 +245,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793548703821
+    "fetchedAt": 1793548892487
    },
    "9OmIn3ns4vv7": {
     "name": "Team PA 2030 Kammerdeiner",
@@ -318,7 +318,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793548701802
+    "fetchedAt": 1793548890698
    },
    "bWAgl1fokEJ8": {
     "name": "Unity 14U Williams",
@@ -391,7 +391,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793548702364
+    "fetchedAt": 1793548891275
    },
    "jRj0Mi2IoFR2": {
     "name": "Impact Caymol Dibartolomeo 14U",
@@ -447,13 +447,13 @@
        "name": "Team PA Larcinese/Pinneri 13U"
       },
       "score": {
-       "team": 7,
+       "team": 10,
        "opponent_team": 0
       },
-      "game_status": "live"
+      "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793548704423
+    "fetchedAt": 1793548893088
    },
    "m0QuD26jFKCE": {
     "name": "Unity 14u Rodgers - PA",
@@ -515,7 +515,7 @@
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793548703120
+    "fetchedAt": 1793548891889
    },
    "q1r5h3BZmdPR": {
     "name": "Outlaws Premier 2031 Lucia",
@@ -577,7 +577,7 @@
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793548705091
+    "fetchedAt": 1793548893702
    },
    "vaGizeBjZImX": {
     "name": "Team PA Rasbach 13U",
@@ -639,7 +639,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793548706711
+    "fetchedAt": 1793548895213
    }
   },
   "tm": {
