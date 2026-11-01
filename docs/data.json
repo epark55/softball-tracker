@@ -106,9 +106,9 @@
   "ignoreReports": []
  },
  "snap": {
-  "fetchedAt": 1793540683502,
-  "checkedAt": 1793540683502,
-  "fullAt": 1793540683502,
+  "fetchedAt": 1793541060544,
+  "checkedAt": 1793541060544,
+  "fullAt": 1793541060544,
   "tmAt": 1793540683502,
   "allAt": 0,
   "feeds": {
@@ -169,7 +169,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793540688095
+    "fetchedAt": 1793541065471
    },
    "7GqzHSsWfAiG": {
     "name": "Tri-State Thunder Gold 14U",
@@ -226,12 +226,12 @@
       },
       "score": {
        "team": 6,
-       "opponent_team": 0
+       "opponent_team": 2
       },
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793540685620
+    "fetchedAt": 1793541063086
    },
    "9OmIn3ns4vv7": {
     "name": "Team PA 2030 Kammerdeiner",
@@ -298,13 +298,13 @@
        "name": "Tri-State Thunder Gold 14U"
       },
       "score": {
-       "team": 0,
+       "team": 2,
        "opponent_team": 6
       },
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793540683792
+    "fetchedAt": 1793541060898
    },
    "bWAgl1fokEJ8": {
     "name": "Unity 14U Williams",
@@ -366,7 +366,7 @@
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793540684348
+    "fetchedAt": 1793541061482
    },
    "jRj0Mi2IoFR2": {
     "name": "Impact Caymol Dibartolomeo 14U",
@@ -425,7 +425,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793540686500
+    "fetchedAt": 1793541063897
    },
    "m0QuD26jFKCE": {
     "name": "Unity 14u Rodgers - PA",
@@ -484,7 +484,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793540685026
+    "fetchedAt": 1793541062321
    },
    "q1r5h3BZmdPR": {
     "name": "Outlaws Premier 2031 Lucia",
@@ -543,7 +543,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793540687172
+    "fetchedAt": 1793541064510
    },
    "vaGizeBjZImX": {
     "name": "Team PA Rasbach 13U",
@@ -605,7 +605,7 @@
       "game_status": "live"
      }
     ],
-    "fetchedAt": 1793540688722
+    "fetchedAt": 1793541066058
    }
   },
   "tm": {
