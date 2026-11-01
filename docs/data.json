@@ -106,9 +106,9 @@
   "ignoreReports": []
  },
  "snap": {
-  "fetchedAt": 1793551524789,
-  "checkedAt": 1793551524789,
-  "fullAt": 1793551524789,
+  "fetchedAt": 1793551713146,
+  "checkedAt": 1793551713146,
+  "fullAt": 1793551713146,
   "tmAt": 1793551334730,
   "allAt": 0,
   "feeds": {
@@ -172,7 +172,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793551528994
+    "fetchedAt": 1793551717525
    },
    "7GqzHSsWfAiG": {
     "name": "Tri-State Thunder Gold 14U",
@@ -245,7 +245,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793551526969
+    "fetchedAt": 1793551715571
    },
    "9OmIn3ns4vv7": {
     "name": "Team PA 2030 Kammerdeiner",
@@ -318,7 +318,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793551525107
+    "fetchedAt": 1793551713672
    },
    "bWAgl1fokEJ8": {
     "name": "Unity 14U Williams",
@@ -381,17 +381,20 @@
      },
      {
       "id": "daf0bf1f-1037-47a0-8bba-b17e61962502",
-      "start_ts": "2026-11-01T15:00:00.000Z",
-      "end_ts": "2026-11-01T16:00:00.000Z",
-      "home_away": null,
+      "start_ts": "2026-11-01T17:00:00.000Z",
+      "end_ts": "2026-11-01T19:00:00.000Z",
+      "home_away": "away",
       "opponent_team": {
-       "name": "TBD- 11/01/26, 10:00 AM"
+       "name": "Outlaws Premier 2031 Lucia"
       },
-      "score": null,
-      "game_status": null
+      "score": {
+       "team": 0,
+       "opponent_team": 0
+      },
+      "game_status": "new"
      }
     ],
-    "fetchedAt": 1793551525665
+    "fetchedAt": 1793551714268
    },
    "jRj0Mi2IoFR2": {
     "name": "Impact Caymol Dibartolomeo 14U",
@@ -453,7 +456,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793551527671
+    "fetchedAt": 1793551716265
    },
    "m0QuD26jFKCE": {
     "name": "Unity 14u Rodgers - PA",
@@ -515,7 +518,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793551526294
+    "fetchedAt": 1793551714882
    },
    "q1r5h3BZmdPR": {
     "name": "Outlaws Premier 2031 Lucia",
@@ -591,7 +594,7 @@
       "game_status": "new"
      }
     ],
-    "fetchedAt": 1793551528333
+    "fetchedAt": 1793551716825
    },
    "vaGizeBjZImX": {
     "name": "Team PA Rasbach 13U",
@@ -653,7 +656,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793551529771
+    "fetchedAt": 1793551718190
    }
   },
   "tm": {
