@@ -89,6 +89,33 @@ var TL = (function(){
         (map[key] = map[key] || []).push(rec);
       });
     });
+    /* The two teams' pages sometimes list the same game at different times: an hour apart (often
+       around a daylight-saving change) or exactly 12 hours apart (an AM/PM slip). Treat reports of the
+       same two teams on the same day as one game when their times are that close, and show the more
+       believable time: the daytime one for a 12-hour slip, otherwise the later one. */
+    function hourOf(ts){ return +new Date(ts).toLocaleString("en-US", {timeZone:TZ, hour:"numeric", hour12:false}); }
+    function compatible(t1, t2){ var d = Math.abs(Date.parse(t1) - Date.parse(t2)), h = 3600000;
+      return d <= 75*60000 || Math.abs(d - 12*h) <= 75*60000; }
+    function better(t1, t2){
+      var d = Math.abs(Date.parse(t1) - Date.parse(t2));
+      if (d > 6*3600000){ var day1 = hourOf(t1) >= 6 && hourOf(t1) <= 21; return day1 ? t1 : t2; }
+      return Date.parse(t1) >= Date.parse(t2) ? t1 : t2;
+    }
+    var groups = {};
+    Object.keys(map).forEach(function(k){ var r0 = map[k][0]; var gk = localDate(r0.start) + "|" + r0.a.k + "|" + r0.b.k; (groups[gk] = groups[gk] || []).push(k); });
+    Object.keys(groups).forEach(function(gk){
+      var ks = groups[gk].sort();
+      for (var i = 0; i < ks.length; i++){
+        if (!map[ks[i]]) continue;
+        for (var j = i + 1; j < ks.length; j++){
+          if (!map[ks[j]] || !compatible(map[ks[i]][0].start, map[ks[j]][0].start)) continue;
+          var keep = better(map[ks[i]][0].start, map[ks[j]][0].start);
+          var keepEnd = (map[ks[i]].concat(map[ks[j]]).find(function(r){ return r.start === keep && r.end; }) || {}).end || null;
+          map[ks[i]] = map[ks[i]].concat(map[ks[j]]).map(function(r){ r.start = keep; r.end = keepEnd; return r; });
+          delete map[ks[j]];
+        }
+      }
+    });
     /* each team's page reports the game separately; decide what to show when they differ */
     var list = Object.keys(map).map(function(k){
       var reps = map[k], srcs = [];
