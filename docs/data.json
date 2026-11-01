@@ -106,10 +106,10 @@
   "ignoreReports": []
  },
  "snap": {
-  "fetchedAt": 1793564703867,
-  "checkedAt": 1793564703867,
-  "fullAt": 1793564703867,
-  "tmAt": 1793564703867,
+  "fetchedAt": 1793565740589,
+  "checkedAt": 1793565740589,
+  "fullAt": 1793565740589,
+  "tmAt": 1793565740589,
   "allAt": 0,
   "feeds": {
    "13tI2vPbkHn0": {
@@ -172,7 +172,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793564708161
+    "fetchedAt": 1793565744459
    },
    "7GqzHSsWfAiG": {
     "name": "Tri-State Thunder Gold 14U",
@@ -248,7 +248,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793564706108
+    "fetchedAt": 1793565742672
    },
    "9OmIn3ns4vv7": {
     "name": "Team PA 2030 Kammerdeiner",
@@ -321,7 +321,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793564704316
+    "fetchedAt": 1793565741051
    },
    "bWAgl1fokEJ8": {
     "name": "Unity 14U Williams",
@@ -408,7 +408,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793564704882
+    "fetchedAt": 1793565741581
    },
    "jRj0Mi2IoFR2": {
     "name": "Impact Caymol Dibartolomeo 14U",
@@ -491,11 +491,14 @@
       "opponent_team": {
        "name": "Unity 14U Williams"
       },
-      "score": null,
-      "game_status": null
+      "score": {
+       "team": 0,
+       "opponent_team": 0
+      },
+      "game_status": "new"
      }
     ],
-    "fetchedAt": 1793564706784
+    "fetchedAt": 1793565743272
    },
    "m0QuD26jFKCE": {
     "name": "Unity 14u Rodgers - PA",
@@ -557,7 +560,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793564705499
+    "fetchedAt": 1793565742114
    },
    "q1r5h3BZmdPR": {
     "name": "Outlaws Premier 2031 Lucia",
@@ -631,9 +634,20 @@
        "opponent_team": 5
       },
       "game_status": "completed"
+     },
+     {
+      "id": "190bf328-2a86-4a1c-9919-274c9389b5ba",
+      "start_ts": "2026-11-01T21:00:00.000Z",
+      "end_ts": "2026-11-01T22:30:00.000Z",
+      "home_away": null,
+      "opponent_team": {
+       "name": "Ohio Storm 2031 Premier Sherrod/Overholt 13U"
+      },
+      "score": null,
+      "game_status": null
      }
     ],
-    "fetchedAt": 1793564707372
+    "fetchedAt": 1793565743850
    },
    "vaGizeBjZImX": {
     "name": "Team PA Rasbach 13U",
@@ -695,7 +709,7 @@
       "game_status": "completed"
      }
     ],
-    "fetchedAt": 1793564708818
+    "fetchedAt": 1793565745129
    }
   },
   "tm": {
