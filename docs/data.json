@@ -106,10 +106,10 @@
   "ignoreReports": []
  },
  "snap": {
-  "fetchedAt": 1793536722662,
-  "checkedAt": 1793536722662,
-  "fullAt": 1793536722662,
-  "tmAt": 1793536343621,
+  "fetchedAt": 1793537855050,
+  "checkedAt": 1793537855050,
+  "fullAt": 1793537855050,
+  "tmAt": 1793537855050,
   "allAt": 0,
   "feeds": {
    "13tI2vPbkHn0": {
@@ -169,7 +169,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793536727566
+    "fetchedAt": 1793537859669
    },
    "7GqzHSsWfAiG": {
     "name": "Tri-State Thunder Gold 14U",
@@ -228,7 +228,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793536725280
+    "fetchedAt": 1793537857601
    },
    "9OmIn3ns4vv7": {
     "name": "Team PA 2030 Kammerdeiner",
@@ -298,7 +298,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793536723160
+    "fetchedAt": 1793537855705
    },
    "bWAgl1fokEJ8": {
     "name": "Unity 14U Williams",
@@ -349,15 +349,18 @@
       "id": "32792eba-cd8f-426c-a1e3-c4d4e8f7ed1a",
       "start_ts": "2026-11-01T12:00:00.000Z",
       "end_ts": "2026-11-01T13:00:00.000Z",
-      "home_away": null,
+      "home_away": "home",
       "opponent_team": {
        "name": "Team PA Rasbach 13U"
       },
-      "score": null,
-      "game_status": null
+      "score": {
+       "team": 0,
+       "opponent_team": 0
+      },
+      "game_status": "new"
      }
     ],
-    "fetchedAt": 1793536723925
+    "fetchedAt": 1793537856303
    },
    "jRj0Mi2IoFR2": {
     "name": "Impact Caymol Dibartolomeo 14U",
@@ -416,7 +419,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793536726060
+    "fetchedAt": 1793537858375
    },
    "m0QuD26jFKCE": {
     "name": "Unity 14u Rodgers - PA",
@@ -475,7 +478,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793536724578
+    "fetchedAt": 1793537856984
    },
    "q1r5h3BZmdPR": {
     "name": "Outlaws Premier 2031 Lucia",
@@ -534,7 +537,7 @@
       "game_status": null
      }
     ],
-    "fetchedAt": 1793536726827
+    "fetchedAt": 1793537859012
    },
    "vaGizeBjZImX": {
     "name": "Team PA Rasbach 13U",
@@ -596,7 +599,7 @@
       "game_status": "new"
      }
     ],
-    "fetchedAt": 1793536728256
+    "fetchedAt": 1793537860508
    }
   },
   "tm": {
