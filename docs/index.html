@@ -118,6 +118,9 @@ tr.me td{background:color-mix(in srgb,var(--optic) 18%,var(--surface))}
 @media (max-width:520px){.row2{grid-template-columns:1fr}.game{grid-template-columns:56px 1fr}.game .chips{grid-column:2}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 .linkbtn{font:inherit;color:var(--accent);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+.views{font-size:13px;color:var(--muted)}
+.views .linkbtn[aria-pressed="true"]{color:var(--fg);text-decoration:none;font-weight:600}
+th.fin,td.fin{text-align:left;white-space:nowrap}
 .follow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 .follow select{font:15px var(--body);padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);max-width:100%}
 footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
@@ -140,7 +143,7 @@ footer p{margin:0 0 8px}
   <section id="sec-team" aria-labelledby="t-team"><h2 id="t-team" class="eyebrow" style="font-size:13px">Team you're following</h2><div id="team"></div></section>
 
   <section aria-labelledby="t-stand">
-    <div class="sec-head"><h2 id="t-stand">Standings</h2><span class="muted" style="font-size:13px">Wins, then run differential, then fewest runs allowed</span></div>
+    <div class="sec-head"><h2 id="t-stand">Standings</h2><span id="stand-views" class="views" hidden><button type="button" id="v-overall" class="linkbtn">Whole tournament</button> · <button type="button" id="v-pool" class="linkbtn">Pool play</button></span></div>
     <div id="stand"></div>
   </section>
 
@@ -193,6 +196,9 @@ footer p{margin:0 0 8px}
       .map(function(t){ return '<option value="'+esc(t.name)+'"'+(cur && t.key===cur.key?' selected':'')+'>'+esc(t.name)+'</option>'; }).join("");
     if (sel.dataset.v !== opts){ sel.innerHTML = opts; sel.dataset.v = opts; }
   }
+  var standView = "overall";
+  $("v-overall").addEventListener("click", function(){ standView = "overall"; render(); });
+  $("v-pool").addEventListener("click", function(){ standView = "pool"; render(); });
   $("follow").addEventListener("change", function(e){ try{ localStorage.setItem(KEY, e.target.value); }catch(err){} render(); });
 
   function render(){
@@ -247,11 +253,37 @@ footer p{margin:0 0 8px}
         '<div><b>' + mineGames.filter(function(g){return g.final;}).length + '/' + mineGames.length + '</b><span>Games played</span></div></div>' + nextHtml + '</div>';
     } else $("team").innerHTML = '<p class="empty">Pick a team to follow above.</p>';
 
-    /* standings */
+    /* standings: pool play until the bracket starts; then the whole tournament, ordered by finish */
+    var bracketOn = !!ab;
+    var showPool = !bracketOn || standView === "pool";
+    $("stand-views").hidden = !bracketOn;
+    $("v-overall").setAttribute("aria-pressed", String(!showPool)); $("v-pool").setAttribute("aria-pressed", String(showPool));
+    if (!showPool){
+      var names = {}; ab.rounds.forEach(function(rd){ rd.games.forEach(function(g){ names[g.round] = rd.name; }); });
+      var seedIdx = {}; table.forEach(function(x, i){ seedIdx[x.key] = i; });
+      var finish = function(k){
+        var st = ab.status[k];
+        if (ab.champion && ab.champion.k === k) return {o:1, t:"Champion"};
+        if (st && st.out && st.outRound === ab.finalRound) return {o:2, t:"Runner-up"};
+        if (ab.third && ab.third.final && ab.third.a.s !== ab.third.b.s){
+          var w3 = ab.third.a.s > ab.third.b.s ? ab.third.a.k : ab.third.b.k, l3 = w3 === ab.third.a.k ? ab.third.b.k : ab.third.a.k;
+          if (k === w3) return {o:3, t:"3rd"}; if (k === l3) return {o:4, t:"4th"};
+        }
+        if (st && st.out) return {o: 10 + (ab.finalRound - st.outRound), t: "Out in " + (names[st.outRound] || "bracket").toLowerCase()};
+        if (st) return {o:0, t:"Still alive"};
+        return {o:50, t:"—"};
+      };
+      var rowsO = overall.filter(function(x){ return x.inField; }).map(function(x){ return {x:x, f:finish(x.key)}; })
+        .sort(function(a,b){ return (a.f.o - b.f.o) || ((seedIdx[a.x.key]||0) - (seedIdx[b.x.key]||0)); });
+      $("stand").innerHTML = '<div class="tbl"><table><thead><tr><th>Team</th><th class="fin">Finish</th><th>W</th><th>L</th><th>T</th><th>RS</th><th>RA</th><th>RD</th></tr></thead><tbody>' +
+        rowsO.map(function(r){ var x = r.x; return '<tr' + (x.key===fk?' class="me"':'') + '><td>' + esc(x.name) + '</td><td class="fin">' + esc(r.f.t) + '</td><td>' + x.w + '</td><td>' + x.l + '</td><td>' + x.tie + '</td><td>' + x.rs + '</td><td>' + x.ra + '</td><td>' + (x.rd>0?'+':'') + x.rd + '</td></tr>'; }).join("") +
+        '</tbody></table></div><p class="muted" style="font-size:13px;margin:0">All games, pool play and bracket. Ordered by how far each team went, then by pool-play seed.</p>';
+    }
     var rows = table.filter(function(x){ return x.inField; });
     var cross = table.filter(function(x){ return !x.inField; });
     var poolNote = '<p class="muted" style="font-size:13px;margin:0">Pool play only (before ' + esc(fmtDate(TL.bracketDay(cfg))) + '). Built from GameChanger scores; the tournament director\'s official tiebreakers may differ.</p>';
-    if (!rows.length) $("stand").innerHTML = '<p class="empty">Standings appear once games are on the schedule.</p>';
+    if (!showPool) {}
+    else if (!rows.length) $("stand").innerHTML = '<p class="empty">Standings appear once games are on the schedule.</p>';
     else {
       $("stand").innerHTML = '<div class="tbl"><table><thead><tr><th>Team</th><th>W</th><th>L</th><th>T</th><th>RS</th><th>RA</th><th>RD</th></tr></thead><tbody>' +
         rows.map(function(x){ return '<tr' + (x.key===fk?' class="me"':'') + '><td>' + esc(x.name) + '</td><td>' + x.w + '</td><td>' + x.l + '</td><td>' + x.tie + '</td><td>' + x.rs + '</td><td>' + x.ra + '</td><td>' + (x.rd>0?'+':'') + x.rd + '</td></tr>'; }).join("") +
