@@ -273,11 +273,11 @@ footer p{margin:0 0 8px}
         if (st) return {o:0, t:"Still alive"};
         return {o:50, t:"—"};
       };
-      var rowsO = overall.filter(function(x){ return x.inField; }).map(function(x){ return {x:x, f:finish(x.key)}; })
-        .sort(function(a,b){ return (a.f.o - b.f.o) || ((seedIdx[a.x.key]||0) - (seedIdx[b.x.key]||0)); });
-      $("stand").innerHTML = '<div class="tbl"><table><thead><tr><th>Team</th><th class="fin">Finish</th><th>W</th><th>L</th><th>T</th><th>RS</th><th>RA</th><th>RD</th></tr></thead><tbody>' +
-        rowsO.map(function(r){ var x = r.x; return '<tr' + (x.key===fk?' class="me"':'') + '><td>' + esc(x.name) + '</td><td class="fin">' + esc(r.f.t) + '</td><td>' + x.w + '</td><td>' + x.l + '</td><td>' + x.tie + '</td><td>' + x.rs + '</td><td>' + x.ra + '</td><td>' + (x.rd>0?'+':'') + x.rd + '</td></tr>'; }).join("") +
-        '</tbody></table></div><p class="muted" style="font-size:13px;margin:0">All games, pool play and bracket. Ordered by how far each team went, then by pool-play seed.</p>';
+      /* same table as pool play, counting every game; ordered by wins, then run differential, then fewest runs allowed */
+      var rowsO = overall.filter(function(x){ return x.inField; });
+      $("stand").innerHTML = '<div class="tbl"><table><thead><tr><th>Team</th><th>W</th><th>L</th><th>T</th><th>RS</th><th>RA</th><th>RD</th></tr></thead><tbody>' +
+        rowsO.map(function(x){ return '<tr' + (x.key===fk?' class="me"':'') + '><td>' + esc(x.name) + '</td><td>' + x.w + '</td><td>' + x.l + '</td><td>' + x.tie + '</td><td>' + x.rs + '</td><td>' + x.ra + '</td><td>' + (x.rd>0?'+':'') + x.rd + '</td></tr>'; }).join("") +
+        '</tbody></table></div><p class="muted" style="font-size:13px;margin:0">All games, pool play and bracket. Wins, then run differential, then fewest runs allowed.</p>';
     }
     var rows = table.filter(function(x){ return x.inField; });
     var cross = table.filter(function(x){ return !x.inField; });
