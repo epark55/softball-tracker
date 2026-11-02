@@ -250,7 +250,10 @@ footer p{margin:0 0 8px}
     /* standings: pool play only (what seeds the bracket); a team's full record is on its card */
     var rows = table.filter(function(x){ return x.inField; });
     var cross = table.filter(function(x){ return !x.inField; });
-    var poolNote = '<p class="muted" style="font-size:13px;margin:0">Pool play only (before ' + esc(fmtDate(TL.bracketDay(cfg))) + '). Built from GameChanger scores; the tournament director\'s official tiebreakers may differ.</p>';
+    /* name the pool-play day(s), e.g. "Saturday, Oct 31", so it's clear Sunday's bracket games aren't counted */
+    var poolDays = []; pool.forEach(function(g){ var d = fmtDay(g.start); if (poolDays.indexOf(d) < 0) poolDays.push(d); });
+    var poolNote = '<p class="muted" style="font-size:13px;margin:0">Pool play only' + (poolDays.length ? ' (' + esc(poolDays.join(' and ')) + ')' : '') +
+      '. These standings set the bracket seeds; bracket results are in the Bracket section below, and each team\'s full record is on its card. The tournament director\'s official tiebreakers may differ.</p>';
     if (!rows.length) $("stand").innerHTML = '<p class="empty">Standings appear once games are on the schedule.</p>';
     else {
       $("stand").innerHTML = '<div class="tbl"><table><thead><tr><th>Team</th><th>W</th><th>L</th><th>T</th><th>RS</th><th>RA</th><th>RD</th></tr></thead><tbody>' +
