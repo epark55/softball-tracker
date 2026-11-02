@@ -200,14 +200,15 @@ footer p{margin:0 0 8px}
       $("team").innerHTML = '<p class="empty">Tournament details haven\'t been added yet.</p>';
       $("stand").innerHTML = ""; $("games").innerHTML = ""; $("bracket").innerHTML = ""; return; }
     $("h-title").textContent = cfg.title || "Tournament";
-    $("h-dates").textContent = fmtDate(cfg.dateStart) + (cfg.dateEnd!==cfg.dateStart ? " – " + fmtDate(cfg.dateEnd) : "") + (cfg.venue ? " · " + cfg.venue : "");
+    $("h-dates").textContent = (cfg.past ? "Final results · " : "") + fmtDate(cfg.dateStart) + (cfg.dateEnd!==cfg.dateStart ? " – " + fmtDate(cfg.dateEnd) : "") + (cfg.venue ? " · " + cfg.venue : "");
     var fetched = snap && snap.fetchedAt;
     var liveNow = TL.mergeGames(cfg, snap, TL.buildRoster(cfg, snap)).filter(function(g){ return TL.inProgress(g, Date.now()); }).length;
     var checked = snap && (snap.checkedAt || snap.fetchedAt);
     $("st-text").innerHTML = (checked ? '<span class="dot live"></span>Checked GameChanger ' + esc(ago(checked)) : '<span class="dot"></span>No scores pulled yet') +
       (liveNow ? ' · <strong>' + liveNow + ' game' + (liveNow>1?'s':'') + ' on the field</strong>' : '') +
       (fetched && checked && checked - fetched > 5*60000 ? ' · last score change ' + esc(ago(fetched)) : '') +
-      ' · <button id="reload" type="button" class="linkbtn">Refresh</button>';
+      ' · <button id="reload" type="button" class="linkbtn">Refresh</button>' +
+      (cfg.past ? '<br>The next tournament shows up here once it\'s on the team\'s schedule.' : '');
     var rb = $("reload"); if (rb) rb.onclick = function(){ rb.disabled = true; rb.textContent = "Refreshing…"; load(); };
 
     var roster = TL.buildRoster(cfg, snap);

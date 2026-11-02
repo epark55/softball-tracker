@@ -99,6 +99,15 @@ function weekendOf(games, today) {
       || clusters.find((c) => c.dateStart > today)
       || null;
 }
+/* our team's first weekend that starts after `after` and is under way or within 6 days */
+function nextWeekend(games, after, today) {
+  const days = [...new Set((games || []).filter((g) => g.start_ts && g.opponent_team && g.opponent_team.name)
+    .map((g) => TL.localDate(g.start_ts)))].sort().filter((d) => d > after);
+  if (!days.length) return null;
+  let start = days[0], end = days[0];
+  for (const d of days.slice(1)) { if (d <= addDays(end, 2)) end = d; else break; }
+  return start <= addDays(today, 6) && end >= addDays(today, -2) ? { dateStart: start, dateEnd: end } : null;
+}
 function autoGameHours(cfg, snap, now) {
   if (!cfg || !cfg.auto) return false;
   try { return TL.inGameHours(TL.mergeGames(cfg, snap, TL.buildRoster(cfg, snap)), now); } catch { return false; }
@@ -117,19 +126,34 @@ async function main() {
   const today = TL.localDate(new Date(now).toISOString());
   const baseChanged = JSON.stringify(prev.base || null) !== JSON.stringify(base);
 
-  // Which tournament to show: the one in tournament.json from the week before it until the
-  // day after it ends; otherwise "our team only" for whatever weekend the team plays next.
+  // Which tournament to show:
+  //  - the one in tournament.json from the week before it until the day after it ends;
+  //  - after that, its final results stay up until our team has a newer weekend coming
+  //    (games within the next 6 days or under way);
+  //  - then "our team only" for that weekend until the weekly setup adds the full field.
   let cfg = base;
   const configured = base.dateStart && base.dateEnd && today >= addDays(base.dateStart, -6) && today <= addDays(base.dateEnd, 1);
   if (!configured) {
     const ourId = base.follow;
-    let ourGames = (prevSnap.feeds && prevSnap.feeds[ourId] && prevSnap.feeds[ourId].all) || null;
+    let ourGames = prevSnap.ourAll || (prevSnap.feeds && prevSnap.feeds[ourId] && prevSnap.feeds[ourId].all) || null;
     const lastAll = prevSnap.allAt || 0;
     if (!ourGames || now - lastAll > 55 * 60000 || FORCE || baseChanged || autoGameHours(prev.cfg, prevSnap, now)) {
       try { ourGames = (await get(GC + ourId + "/games", "json")).map(slim); prevSnap = { ...prevSnap, allAt: now }; }
       catch (e) { log("Couldn't read our team's schedule:", e.message || e); if (!ourGames) { process.exitCode = 1; return; } }
     }
-    const wk = weekendOf(ourGames, today);
+    const newer = nextWeekend(ourGames, base.dateEnd || "0000-00-00", today);
+    if (!newer && base.dateEnd && today > base.dateEnd) {
+      // Past tournament: keep its results up. Nothing to pull for it; just note this check.
+      cfg = { ...base, past: true };
+      const keep = { ...prevSnap, checkedAt: now, ourAll: ourGames };
+      writeFileSync(LIVE_PATH, JSON.stringify({ base, cfg, snap: keep }) + "\n");
+      if (baseChanged || JSON.stringify(prev.cfg || null) !== JSON.stringify(cfg) || JSON.stringify(prevSnap.ourAll || null) !== JSON.stringify(ourGames)) {
+        writeFileSync(OUT_PATH, JSON.stringify({ base, cfg, snap: { ...keep, fetchedAt: prevSnap.fetchedAt || now } }, null, 1) + "\n");
+        log("Showing final results of", base.title);
+      } else log("Final results of", base.title, "still showing; no newer weekend yet.");
+      return;
+    }
+    const wk = newer || weekendOf(ourGames, today);
     const name = (base.gcTeams || []).find((t) => t.id === ourId)?.name || prev.cfg?.gcTeams?.[0]?.name || "Our team";
     const when = !wk ? "" : wk.dateEnd < today ? "Last weekend" : wk.dateStart > addDays(today, 6) ? "Next games" : "This weekend";
     cfg = { auto: true, noGames: !wk, title: name + (when ? " · " + when : ""),
@@ -198,10 +222,10 @@ async function main() {
   // Every check also writes a "live" copy with the check time. scripts/loop.sh publishes it on a
   // side branch (no site rebuild), so the page can say "checked 2 min ago" even when no score moved.
   const liveSnap = changed || stale ? snap : { ...prevSnap, checkedAt: now };
-  if (cfg.auto && prevSnap.ourAll) liveSnap.feeds = { ...liveSnap.feeds, [cfg.follow]: { ...(liveSnap.feeds[cfg.follow] || {}), all: prevSnap.ourAll } };
+  if (prevSnap.ourAll) liveSnap.ourAll = prevSnap.ourAll;
   writeFileSync(LIVE_PATH, JSON.stringify({ base, cfg, snap: liveSnap }) + "\n");
   if (!changed && !stale) { log("No score changes."); return; }
-  if (cfg.auto && prevSnap.ourAll) { snap.feeds[cfg.follow] = { ...(snap.feeds[cfg.follow] || {}), all: prevSnap.ourAll }; snap.allAt = prevSnap.allAt || now; }
+  if (prevSnap.ourAll) { snap.ourAll = prevSnap.ourAll; snap.allAt = prevSnap.allAt || now; }
   writeFileSync(OUT_PATH, JSON.stringify({ base, cfg, snap }, null, 1) + "\n");
   log(changed ? "Scores changed; wrote docs/data.json" : "Hourly refresh; wrote docs/data.json");
 }
