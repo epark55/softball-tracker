@@ -213,7 +213,7 @@ footer p{margin:0 0 8px}
       (liveNow ? ' · <strong>' + liveNow + ' game' + (liveNow>1?'s':'') + ' on the field</strong>' : '') +
       (fetched && checked && checked - fetched > 5*60000 ? ' · last score change ' + esc(ago(fetched)) : '') +
       ' · <button id="reload" type="button" class="linkbtn">Refresh</button>' +
-      (cfg.past ? '<br>The next tournament shows up here once it\'s on the team\'s schedule.' : '');
+      (cfg.past && !(nextUp && nextUp.found) ? '<br>The next tournament shows up here once it\'s on the team\'s schedule.' : '');
     var rb = $("reload"); if (rb) rb.onclick = function(){ rb.disabled = true; rb.textContent = "Refreshing…"; load(); };
 
     var roster = TL.buildRoster(cfg, snap);
@@ -399,7 +399,7 @@ footer p{margin:0 0 8px}
       if (!d) throw new Error("no data");
       cfg = d.cfg || null; snap = d.snap || null; msg(null); render();
     } catch(e){ msg("Couldn't load the latest scores. This page tries again every minute."); if (cfg) render(); }
-    if (Date.now() - nextAt > 10 * 60000){ nextAt = Date.now(); var n = await fetchTest("next.json"); if (n) nextUp = n; }
+    if (Date.now() - nextAt > 10 * 60000){ nextAt = Date.now(); var n = await fetchTest("next.json"); if (n){ var had = !!nextUp; nextUp = n; if (!had && cfg) render(); } }
     showNext();
   }
   load();
