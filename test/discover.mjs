@@ -45,6 +45,27 @@ const dec = (s) => s.replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&nbs
 const inRegion = (loc) => REGION.some((st) => new RegExp(",\\s*" + st + "\\b").test(loc || ""));
 let parseTMHtml;
 
+/* Is this Tourney Machine name our team? Stricter than the page's matcher, since we're searching
+   every event, not one known field: every distinctive word of our name must be in theirs
+   ("Team PA 2032" isn't "Team PA 2030 Kammerdeiner"), and a different grad year or age group rules it out. */
+const GENERIC = new Set(["team", "the", "softball", "fastpitch", "fp", "club", "travel"]);
+const toks = (s) => (s || "").toLowerCase().replace(/&/g, " and ").replace(/(\d+)\s*u\b/g, "$1u").replace(/[^a-z0-9]+/g, " ").trim().split(" ").filter(Boolean);
+const years = (s) => toks(s).filter((t) => /^(19|20)\d\d$/.test(t));
+const ages = (s) => toks(s).filter((t) => /^\d+u$/.test(t));
+const words = (s) => toks(s).filter((t) => !GENERIC.has(t) && !/^\d+u$/.test(t) && !/^(19|20)\d\d$/.test(t));
+const clash = (a, b) => a.length && b.length && !a.some((x) => b.includes(x));
+export function isTeam(theirs, ours) {
+  if (clash(years(theirs), years(ours)) || clash(ages(theirs), ages(ours))) return false;
+  const w = new Set(words(theirs)), o = words(ours);
+  return o.length > 0 && o.every((x) => w.has(x));
+}
+/* opponents: same idea, but GameChanger and Tourney Machine names differ more, so the shorter name's words must all be in the longer one */
+function isOpp(a, b) {
+  if (clash(years(a), years(b)) || clash(ages(a), ages(b))) return false;
+  const [s, l] = words(a).length <= words(b).length ? [words(a), new Set(words(b))] : [words(b), new Set(words(a))];
+  return s.length >= 2 && s.every((x) => l.has(x)) || (s.length === 1 && l.size === 1 && l.has(s[0]));
+}
+
 /* Tourney Machine search: softball events whose first or last day is `ymd` */
 async function searchDay(ymd, cands) {
   const r = await get(`${TMAPI}?per_page=100&query=${encodeURIComponent("Softball " + tmDate(ymd))}`, "json");
@@ -79,8 +100,8 @@ async function loadDivisions(c) {
 async function check(c, ourName, opponents) {
   const divs = await loadDivisions(c);
   c.divisions = divs.map((d) => ({ ...d,
-    us: d.teams.filter((t) => TL.similar(t, ourName)),
-    opp: d.teams.filter((t) => opponents.some((o) => TL.similar(t, o))) }));
+    us: d.teams.filter((t) => isTeam(t, ourName)),
+    opp: d.teams.filter((t) => opponents.some((o) => isOpp(t, o))) }));
   c.us = c.divisions.some((d) => d.us.length);
   c.oppHits = new Set(c.divisions.flatMap((d) => d.opp)).size;
   c.score = (c.us ? 100 : 0) + c.oppHits;
@@ -158,7 +179,7 @@ export async function discover({ team: TEAM, weekend, today, quiet }) {
   const gcTeams = [{ id: TEAM, name: team.name }], noGc = [];
   for (const t of field) {
     if (keep.some((d) => d.us.includes(t))) continue;                         // that's us
-    const hit = Object.entries(dir).find(([id, n]) => id !== TEAM && TL.similar(n, t));
+    const hit = Object.entries(dir).find(([id, n]) => id !== TEAM && TL.similar(n, t) >= 1 && isOpp(n, t));
     if (hit && !gcTeams.some((g) => g.id === hit[0])) gcTeams.push({ id: hit[0], name: hit[1] }); else if (!hit) noGc.push(t);
   }
   Object.assign(result, {
