@@ -34,10 +34,10 @@ jobs:
         run: node test/discover.mjs
       - name: "Case: Ghostbuster (Oct 30 - Nov 1), our team"
         run: TEAM=9OmIn3ns4vv7 WEEKEND=2026-10-30 node test/discover.mjs
-      - name: "Case: Pumpkin Smash (Oct 24-25), Team PA Rasbach"
-        run: TEAM=vaGizeBjZImX WEEKEND=2026-10-24 node test/discover.mjs
-      - name: "Case: Pumpkin Smash (Oct 24-25), Unity Rodgers"
-        run: TEAM=m0QuD26jFKCE WEEKEND=2026-10-24 node test/discover.mjs
+      - name: "Case: Team PA Rasbach 13U, next weekend"
+        run: TEAM=vaGizeBjZImX node test/discover.mjs
+      - name: "Case: Unity Rodgers, next weekend"
+        run: TEAM=m0QuD26jFKCE node test/discover.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: discover-results

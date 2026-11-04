@@ -42,7 +42,8 @@ const parseTMHtml = (await import("../scripts/update.mjs")).parseTMHtml;
 const TEAM = process.env.TEAM || "9OmIn3ns4vv7";
 const today = process.env.TODAY || new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
 const team = await get(GC + TEAM, "json");
-const games = (await get(GC + TEAM + "/games", "json")).filter((g) => g.start_ts && g.opponent_team && g.opponent_team.name);
+// game days count even before opponents are named (early schedules often say TBD)
+const games = (await get(GC + TEAM + "/games", "json")).filter((g) => g.start_ts);
 const days = [...new Set(games.map((g) => TL.localDate(g.start_ts)))].sort();
 const clusters = [];
 for (const d of days) { const c = clusters.at(-1); if (c && d <= addDays(c.end, 2)) c.end = d; else clusters.push({ start: d, end: d }); }
@@ -50,7 +51,7 @@ const want = process.env.WEEKEND || today;
 const wk = clusters.find((c) => c.start <= want && want <= c.end) || clusters.find((c) => c.start >= want);
 if (!wk) { log(`No upcoming games on ${team.name}'s GameChanger schedule.`); process.exit(0); }
 const wkGames = games.filter((g) => { const d = TL.localDate(g.start_ts); return d >= wk.start && d <= wk.end; });
-const opponents = [...new Set(wkGames.map((g) => g.opponent_team.name))];
+const opponents = [...new Set(wkGames.map((g) => g.opponent_team && g.opponent_team.name).filter((n) => n && !/^(tbd|tba)\b/i.test(n)))];
 log(`Team: ${team.name}\nWeekend on GameChanger: ${wk.start} to ${wk.end}, ${wkGames.length} games`);
 log(`Opponents listed: ${opponents.join(", ") || "(none yet)"}`);
 
