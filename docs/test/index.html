@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>TEST · Softball Tracker</title>
+<meta name="description" content="Live standings, scores and bracket built from GameChanger.">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-title" content="Softball TEST">
+<meta name="theme-color" content="#1F6F43">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+/* Layout: one narrow scoreboard column; team card first, then standings, games, bracket, setup */
+:root{
+  --bg:#F3F4EF; --surface:#FFFFFF; --fg:#17211B; --muted:#5D6A61; --line:#D9DED5;
+  --accent:#1F6F43; --accent-ink:#FFFFFF; --optic:#B9C51E; --optic-ink:#1B2205;
+  --win:#1F6F43; --loss:#A23B2A; --warn:#8A5A00; --warn-bg:#FFF3D6;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1511; --surface:#16201A; --fg:#E7ECE4; --muted:#9AA79E; --line:#26332B;
+  --accent:#5FC58A; --accent-ink:#06150C; --optic:#D7E44A; --optic-ink:#171D02;
+  --win:#5FC58A; --loss:#F08A73; --warn:#F2C467; --warn-bg:#2E2510; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1511; --surface:#16201A; --fg:#E7ECE4; --muted:#9AA79E; --line:#26332B;
+  --accent:#5FC58A; --accent-ink:#06150C; --optic:#D7E44A; --optic-ink:#171D02;
+  --win:#5FC58A; --loss:#F08A73; --warn:#F2C467; --warn-bg:#2E2510; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px;display:flex;flex-direction:column;gap:28px}
+h1,h2{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.02em;margin:0;text-wrap:balance}
+h1{font-size:clamp(28px,6vw,40px);line-height:1}
+h2{font-size:20px;letter-spacing:.06em}
+.eyebrow{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+header{display:flex;flex-direction:column;gap:8px}
+.statusbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;font-size:13px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block;margin-right:6px;vertical-align:middle}
+.dot.live{background:var(--optic)}
+button{font:600 14px/1 var(--body);border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:9px 14px;cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.55;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+section{display:flex;flex-direction:column;gap:12px}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+/* followed team */
+.teamcard{background:var(--fg);color:var(--bg);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.teamcard .eyebrow{color:color-mix(in srgb,var(--bg) 70%,var(--fg))}
+.teamcard h3{font-family:var(--display);font-size:26px;margin:0;text-transform:uppercase;letter-spacing:.02em;line-height:1.05}
+.rec{display:flex;gap:22px;flex-wrap:wrap}
+.rec div{display:flex;flex-direction:column}
+.rec b{font-family:var(--display);font-size:34px;line-height:1;font-variant-numeric:tabular-nums}
+.rec span{font-size:12px;letter-spacing:.1em;text-transform:uppercase;opacity:.75}
+.next{border-top:1px solid color-mix(in srgb,var(--bg) 25%,var(--fg));padding-top:12px;font-size:14px}
+.next strong{font-family:var(--display);font-size:18px;letter-spacing:.03em;text-transform:uppercase}
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:440px}
+th{font:600 12px/1 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:right;padding:10px 10px;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+tr.me td{background:color-mix(in srgb,var(--optic) 18%,var(--surface))}
+.tag{font:600 11px/1 var(--body);letter-spacing:.04em;padding:3px 6px;border-radius:4px;border:1px solid var(--line);color:var(--muted);margin-left:6px;white-space:nowrap}
+/* games */
+.day{display:flex;flex-direction:column;gap:6px}
+.game{display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:center;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.game .t{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.game .m{min-width:0;display:flex;flex-direction:column;gap:2px}
+.game .m div{display:flex;justify-content:space-between;gap:8px}
+.game .m span.n{overflow-wrap:anywhere}
+.game .m b{font-family:var(--display);font-size:18px;font-variant-numeric:tabular-nums}
+.game .m .fld{font-size:12px;color:var(--muted);display:block}
+.game .w{font-weight:600}
+.chip{font:600 11px/1 var(--body);padding:4px 7px;border-radius:999px;white-space:nowrap}
+.chip.final{background:var(--fg);color:var(--bg)}
+.chip.up{border:1px solid var(--line);color:var(--muted)}
+.chip.conf{background:var(--warn-bg);color:var(--warn)}
+.chip.mine{background:var(--optic);color:var(--optic-ink)}
+.chip.live{background:var(--loss);color:var(--surface)}
+.nowscore{font-family:var(--display);font-size:30px;font-weight:700;line-height:1.1}
+.nowscore span{font-family:var(--body);font-size:13px;font-weight:500;opacity:.8;margin-left:6px}
+.teamcard .dot.live{background:var(--optic)}
+.note{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;font-size:14px;display:flex;flex-direction:column;gap:6px}
+.note.warn{background:var(--warn-bg);border-color:transparent;color:var(--fg)}
+.empty{color:var(--muted);font-size:14px;padding:6px 0}
+/* bracket */
+.bracket{display:flex;gap:16px;overflow-x:auto;padding-bottom:6px}
+.round{display:flex;flex-direction:column;gap:8px;min-width:210px;flex:1 0 210px}
+.rmatches{display:flex;flex-direction:column;justify-content:space-around;gap:12px;flex:1}
+.round.third{max-width:320px}
+.match{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.slot{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line);font-size:14px}
+.slot .sd{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:right}
+.slot .nm{min-width:0;overflow-wrap:anywhere}
+.slot b{font-family:var(--display);font-size:18px;font-variant-numeric:tabular-nums}
+.slot.won .nm{font-weight:600}
+.slot.won b{color:var(--win)}
+.slot.lost{color:var(--muted)}
+.slot.me{background:color-mix(in srgb,var(--optic) 22%,var(--surface))}
+.slot.tbd .nm,.slot.bye .nm{color:var(--muted);font-style:italic}
+.match .meta{font-size:12px;color:var(--muted);padding:6px 10px}
+.match.isbye .slot{border-bottom:0}
+.champ{display:flex;align-items:baseline;gap:12px;background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:12px 14px}
+.champ .eyebrow{color:inherit;opacity:.8}
+.champ strong{font-family:var(--display);font-size:24px;text-transform:uppercase;letter-spacing:.02em}
+@media (max-width:520px){.row2{grid-template-columns:1fr}.game{grid-template-columns:56px 1fr}.game .chips{grid-column:2}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.linkbtn{font:inherit;color:var(--accent);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+.follow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.follow select{font:15px var(--body);padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);max-width:100%}
+.testbar{background:#8A5A00;color:#fff;font:600 13px/1.3 var(--body);text-align:center;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.testbar a{color:#fff}
+footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+footer p{margin:0 0 8px}
+.howto{gap:6px;margin-bottom:14px;font-size:13px;color:var(--fg)}
+.howto h2{font-size:13px;margin-bottom:2px}
+.howto p{margin:0}
+</style>
+</head>
+<body>
+<div class="testbar">TEST COPY · changes here don't affect the live page · <a href="../">Open the live page</a></div>
+<div class="wrap">
+  <header>
+    <div class="eyebrow" id="h-dates">Tournament tracker</div>
+    <h1 id="h-title">Loading tournament…</h1>
+    <div class="statusbar"><span id="st-text"><span class="dot"></span>Loading scores</span></div>
+    <label class="follow" for="follow">Following<select id="follow"></select></label>
+    <div id="st-msg" class="note warn" hidden></div>
+  </header>
+
+  <section id="sec-team" aria-labelledby="t-team"><h2 id="t-team" class="eyebrow" style="font-size:13px">Team you're following</h2><div id="team"></div></section>
+
+  <section aria-labelledby="t-stand">
+    <div class="sec-head"><h2 id="t-stand">Standings</h2><span class="muted" style="font-size:13px">Wins, then run differential, then fewest runs allowed</span></div>
+    <div id="stand"></div>
+  </section>
+
+  <section aria-labelledby="t-games">
+    <div class="sec-head"><h2 id="t-games">Games</h2><span class="muted" style="font-size:13px">Times are Eastern</span></div>
+    <div id="games"></div>
+  </section>
+
+  <section aria-labelledby="t-bracket">
+    <h2 id="t-bracket">Bracket</h2>
+    <div id="bracket"></div>
+  </section>
+
+  <footer>
+    <section class="howto" aria-labelledby="t-howto">
+      <h2 id="t-howto" class="eyebrow">Save to your home screen</h2>
+      <p><strong>iPhone:</strong> open this page in Safari, tap the Share button (square with an arrow), then <em>Add to Home Screen</em>.</p>
+      <p><strong>Android:</strong> open this page in Chrome, tap the ⋮ menu, then <em>Add to Home screen</em>.</p>
+    </section>
+    <p>Scores come from each team's public GameChanger page and may lag the field by a few minutes. Not affiliated with GameChanger or the tournament.</p>
+  </footer>
+</div>
+<script>/* always load the newest rules, not a cached copy */ document.write('<script src="logic.js?t=' + Math.floor(Date.now()/60000) + '"><\/script>');</script>
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var cfg = null, snap = null;
+  function tmLinks(c){ return ((c && c.tmUrls) || (c && c.tmUrl ? [c.tmUrl] : [])).filter(Boolean); }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+  function fmtTime(ts){ return new Date(ts).toLocaleTimeString("en-US",{timeZone:TL.TZ,hour:"numeric",minute:"2-digit"}); }
+  function fmtDay(ts){ return new Date(ts).toLocaleDateString("en-US",{timeZone:TL.TZ,weekday:"long",month:"short",day:"numeric"}); }
+  function fmtDate(d){ var p=d.split("-"); return new Date(Date.UTC(+p[0],+p[1]-1,+p[2],12)).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"UTC"}); }
+  function ago(ms){ var m=Math.round((Date.now()-ms)/60000); if(m<1) return "just now"; if(m<60) return m+" min ago"; var h=Math.round(m/60); return h<24? h+" hr ago" : new Date(ms).toLocaleString("en-US",{timeZone:TL.TZ,month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}); }
+  function msg(text){ var el=$("st-msg"); if(!text){el.hidden=true;return;} el.textContent=text; el.hidden=false; }
+
+  /* which team this viewer follows: their own pick, remembered on this device */
+  var KEY = "follow-team";
+  /* any team in the field can be followed, including teams without a public GameChanger page */
+  function defaultFollowName(){ var t = (cfg.gcTeams||[]).find(function(t){ return t.id===cfg.follow; }); return t ? t.name : null; }
+  function followTeamOf(roster){
+    var v=null; try{ v=localStorage.getItem(KEY); }catch(e){}
+    var gc = v && (cfg.gcTeams||[]).find(function(t){ return t.id===v; }); if (gc) v = gc.name;   /* older saved choice */
+    var pick = v && roster.find(function(r){ return TL.similar(r.name, v) >= 1; });
+    if (!pick){ var dn = defaultFollowName(); pick = dn && roster.find(function(r){ return TL.similar(r.name, dn) >= 1; }); }
+    return pick || null;
+  }
+  function fillFollow(roster, cur){
+    var sel=$("follow");
+    var opts=roster.slice().sort(function(a,b){ return a.name.localeCompare(b.name); })
+      .map(function(t){ return '<option value="'+esc(t.name)+'"'+(cur && t.key===cur.key?' selected':'')+'>'+esc(t.name)+'</option>'; }).join("");
+    if (sel.dataset.v !== opts){ sel.innerHTML = opts; sel.dataset.v = opts; }
+  }
+  $("follow").addEventListener("change", function(e){ try{ localStorage.setItem(KEY, e.target.value); }catch(err){} render(); });
+
+  function render(){
+    if (!cfg){ $("h-title").textContent = "No tournament set up yet"; $("h-dates").textContent = "Tournament tracker";
+      $("team").innerHTML = '<p class="empty">Tournament details haven\'t been added yet.</p>';
+      $("stand").innerHTML = ""; $("games").innerHTML = ""; $("bracket").innerHTML = ""; return; }
+    $("h-title").textContent = cfg.title || "Tournament";
+    $("h-dates").textContent = (cfg.past ? "Final results · " : "") + fmtDate(cfg.dateStart) + (cfg.dateEnd!==cfg.dateStart ? " – " + fmtDate(cfg.dateEnd) : "") + (cfg.venue ? " · " + cfg.venue : "");
+    var fetched = snap && snap.fetchedAt;
+    var liveNow = TL.mergeGames(cfg, snap, TL.buildRoster(cfg, snap)).filter(function(g){ return TL.inProgress(g, Date.now()); }).length;
+    var checked = snap && (snap.checkedAt || snap.fetchedAt);
+    $("st-text").innerHTML = (checked ? '<span class="dot live"></span>Checked GameChanger ' + esc(ago(checked)) : '<span class="dot"></span>No scores pulled yet') +
+      (liveNow ? ' · <strong>' + liveNow + ' game' + (liveNow>1?'s':'') + ' on the field</strong>' : '') +
+      (fetched && checked && checked - fetched > 5*60000 ? ' · last score change ' + esc(ago(fetched)) : '') +
+      ' · <button id="reload" type="button" class="linkbtn">Refresh</button>' +
+      (cfg.past ? '<br>The next tournament shows up here once it\'s on the team\'s schedule.' : '');
+    var rb = $("reload"); if (rb) rb.onclick = function(){ rb.disabled = true; rb.textContent = "Refreshing…"; load(); };
+
+    var roster = TL.buildRoster(cfg, snap);
+    var games = TL.mergeGames(cfg, snap, roster);
+    var pool = TL.poolGames(games, cfg), elim = TL.elimGames(games, cfg);
+    var table = TL.table(pool, roster);
+    var overall = TL.table(games, roster);
+    var followTeam = followTeamOf(roster);
+    var fk = followTeam ? followTeam.key : null;
+    fillFollow(roster, followTeam);
+    var field = table.filter(function(x){ return x.inField; });
+    var ab = TL.actualBracket(elim, field, cfg);
+
+    /* team card */
+    if (followTeam){
+      var r = overall.find(function(x){ return x.key===fk; }) || {w:0,l:0,tie:0,rd:0};
+      var mineGames = games.filter(function(g){ return g.a.k===fk || g.b.k===fk; });
+      var nowG = mineGames.find(function(g){ return TL.inProgress(g, Date.now()); });
+      var nextG = mineGames.find(function(g){ return !g.final && g !== nowG && !TL.unreported(g, Date.now()); });
+      var missing = mineGames.filter(function(g){ return TL.unreported(g, Date.now()); });
+      var nowHtml = nowG ? (function(){ var me = nowG.a.k===fk ? nowG.a : nowG.b, opp = nowG.a.k===fk ? nowG.b : nowG.a;
+          return '<div class="next"><div class="eyebrow"><span class="dot live"></span>Now playing</div><strong>vs. ' + esc(opp.n) + '</strong><div class="nowscore num">' +
+            (nowG.live ? me.s + ' – ' + opp.s + ' <span>' + (me.s>opp.s?'leading':me.s<opp.s?'trailing':'tied') + '</span>' : '<span>Waiting for a score from GameChanger</span>') + '</div></div>'; })() : '';
+      var nextHtml = nowHtml + (nextG ? (function(){ var opp = nextG.a.k===fk ? nextG.b : nextG.a;
+          return '<div class="next"><div class="eyebrow">Next game</div><strong>' + esc(fmtTime(nextG.start)) + ' vs. ' + esc(opp.n) + '</strong><div>' + esc(fmtDay(nextG.start)) + '</div></div>'; })()
+        : (nowG || missing.length ? '' : mineGames.length ? '<div class="next">All scheduled games are final.</div>' : '<div class="next">No games found for these dates yet.</div>'));
+      var bst = ab && ab.status[fk], statusHtml = '';
+      if (ab && ab.champion && ab.champion.k === fk) statusHtml = '<div class="next"><div class="eyebrow">Bracket</div><strong>Champions</strong></div>';
+      else if (bst && bst.out) statusHtml = '<div class="next"><div class="eyebrow">Bracket</div><strong>Out in the ' + esc((ab.rounds.find(function(rd){ return rd.games.some(function(g){ return g.round === bst.outRound; }); }) || {name:"bracket"}).name.toLowerCase()) + '</strong><div>Pick another team above to keep following the bracket.</div></div>';
+      else if (bst) statusHtml = '<div class="next"><div class="eyebrow">Bracket</div><strong>Still alive</strong></div>';
+      if (missing.length) nextHtml = '<div class="next"><div class="eyebrow">No score reported</div>' + missing.map(function(g){ var opp = g.a.k===fk ? g.b : g.a; return esc(fmtTime(g.start)) + ' vs. ' + esc(opp.n); }).join('<br>') + '</div>' + nextHtml;
+      nextHtml = statusHtml + nextHtml;
+      $("team").innerHTML = '<div class="teamcard"><h3>' + esc(followTeam.name) + '</h3><div class="rec num">' +
+        '<div><b>' + r.w + '-' + r.l + (r.tie?'-'+r.tie:'') + '</b><span>Record</span></div>' +
+        '<div><b>' + (r.rd>0?'+':'') + r.rd + '</b><span>Run diff</span></div>' +
+        '<div><b>' + mineGames.filter(function(g){return g.final;}).length + '/' + mineGames.length + '</b><span>Games played</span></div></div>' + nextHtml + '</div>';
+    } else $("team").innerHTML = '<p class="empty">Pick a team to follow above.</p>';
+
+    /* standings: pool play only (what seeds the bracket); a team's full record is on its card */
+    var rows = table.filter(function(x){ return x.inField; });
+    var cross = table.filter(function(x){ return !x.inField; });
+    /* name the pool-play day(s), e.g. "Saturday, Oct 31", so it's clear Sunday's bracket games aren't counted */
+    var poolDays = []; pool.forEach(function(g){ var d = fmtDay(g.start); if (poolDays.indexOf(d) < 0) poolDays.push(d); });
+    var poolNote = '<p class="muted" style="font-size:13px;margin:0">Pool play only' + (poolDays.length ? ' (' + esc(poolDays.join(' and ')) + ')' : '') +
+      '. These standings set the bracket seeds; bracket results are in the Bracket section below, and each team\'s full record is on its card. The tournament director\'s official tiebreakers may differ.</p>';
+    if (!rows.length) $("stand").innerHTML = '<p class="empty">Standings appear once games are on the schedule.</p>';
+    else {
+      $("stand").innerHTML = '<div class="tbl"><table><thead><tr><th>Team</th><th>W</th><th>L</th><th>T</th><th>RS</th><th>RA</th><th>RD</th></tr></thead><tbody>' +
+        rows.map(function(x){ return '<tr' + (x.key===fk?' class="me"':'') + '><td>' + esc(x.name) + '</td><td>' + x.w + '</td><td>' + x.l + '</td><td>' + x.tie + '</td><td>' + x.rs + '</td><td>' + x.ra + '</td><td>' + (x.rd>0?'+':'') + x.rd + '</td></tr>'; }).join("") +
+        '</tbody></table></div>' +
+        (cross.length ? '<p class="muted" style="font-size:13px;margin:0">Also played: ' + cross.map(function(x){ return esc(x.name) + ' (' + x.w + '-' + x.l + ')'; }).join(", ") + '. These teams aren\'t on the Tourney Machine team list.</p>' : '') +
+        poolNote;
+    }
+
+    /* games */
+    if (!games.length) $("games").innerHTML = '<p class="empty">No games found between ' + esc(fmtDate(cfg.dateStart)) + ' and ' + esc(fmtDate(cfg.dateEnd)) + ' yet.</p>';
+    else {
+      var byDay = {}; games.forEach(function(g){ var d = fmtDay(g.start); (byDay[d]=byDay[d]||[]).push(g); });
+      $("games").innerHTML = Object.keys(byDay).map(function(d){
+        return '<div class="day"><div class="eyebrow">' + esc(d) + '</div>' + byDay[d].map(function(g){
+          var aw = g.final && g.a.s > g.b.s, bw = g.final && g.b.s > g.a.s;
+          var mine = g.a.k===fk || g.b.k===fk;
+          var onField = TL.inProgress(g, Date.now());
+          var chip = g.conflict ? '<span class="chip conf">Scores differ</span>' : g.final ? '<span class="chip final">' + (g.official ? 'Final · Official' : 'Final · GC') + '</span>' : g.live ? '<span class="chip live">Live</span>' : onField ? '<span class="chip live">In progress</span>' : TL.unreported(g, Date.now()) ? '<span class="chip conf">No score reported</span>' : '<span class="chip up">Upcoming</span>';
+          var showS = g.final || g.live;
+          return '<div class="game"><div class="t">' + esc(fmtTime(g.start)) + (g.tm && g.tm.no ? '<br>' + esc(g.tm.no) : '') + '</div><div class="m">' +
+            '<div><span class="n' + (aw?' w':'') + '">' + esc(g.a.n) + '</span><b>' + (showS?g.a.s:'') + '</b></div>' +
+            '<div><span class="n' + (bw?' w':'') + '">' + esc(g.b.n) + '</span><b>' + (showS?g.b.s:'') + '</b></div>' +
+            (g.tm && g.tm.loc ? '<div class="fld">' + esc(g.tm.loc) + '</div>' : '') + '</div>' +
+            '<div class="chips" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">' + (mine?'<span class="chip mine">Your team</span>':'') + chip + '</div></div>';
+        }).join("") + '</div>';
+      }).join("");
+    }
+
+    /* bracket */
+    var seeds = TL.seedList(table, cfg, roster);
+    var br = TL.buildBracket(seeds.list, elim, cfg.bracketSize || 0);
+    var poolDone = pool.length > 0 && pool.every(function(g){ return g.final; });
+    var b = "";
+    if (ab){
+      var seedOf = function(g, k){ return g.tm && g.tm.seeds && g.tm.seeds[k] ? g.tm.seeds[k] : ""; };
+      var aside = function(g, t, s){
+        var won = g.winner === t.k, lost = g.winner && g.winner !== t.k;
+        return '<div class="slot' + (won?' won':'') + (lost?' lost':'') + (t.k===fk?' me':'') + '"><span class="sd">' + seedOf(g, t.k) + '</span><span class="nm">' + esc(t.n) + '</span><b>' + (g.final || g.live ? s : '') + '</b></div>';
+      };
+      var acard = function(g){
+        var meta = g.conflict ? 'Scores differ, check GameChanger' : g.final ? (g.official ? 'Final · Official' : 'Final') : g.live ? 'Live' : TL.inProgress(g, Date.now()) ? 'In progress' : TL.unreported(g, Date.now()) ? 'No score reported' : fmtTime(g.start) + ' · ' + fmtDay(g.start).split(",")[0];
+        if (g.tm && g.tm.loc) meta += ' · ' + g.tm.loc;
+        return '<div class="match">' + aside(g, g.a, g.a.s) + aside(g, g.b, g.b.s) + '<div class="meta">' + esc(meta) + '</div></div>';
+      };
+      var pcard = function(t){
+        return '<div class="match">' + (t ? '<div class="slot' + (t.k===fk?' me':'') + '"><span class="sd"></span><span class="nm">' + esc(t.n) + '</span><b></b></div>' : '<div class="slot tbd"><span class="sd"></span><span class="nm">TBD</span><b></b></div>') +
+          '<div class="slot tbd"><span class="sd"></span><span class="nm">TBD</span><b></b></div><div class="meta">Not scheduled yet</div></div>';
+      };
+      b += '<div class="sec-head" style="margin:0"><span class="chip final">From the scheduled bracket games</span><span class="muted" style="font-size:13px">' + ab.size + ' teams · GameChanger' + (snap && snap.tm && snap.tm.games && snap.tm.games.length ? ' + Tourney Machine' : '') + '</span></div>';
+      if (ab.champion) b += '<div class="champ"><span class="eyebrow">Champion</span><strong>' + esc(ab.champion.n) + '</strong></div>';
+      b += '<div class="bracket">' + ab.rounds.map(function(rd){ return '<div class="round"><div class="eyebrow">' + esc(rd.name) + '</div><div class="rmatches">' + rd.games.map(acard).join("") + rd.placeholders.map(pcard).join("") + '</div></div>'; }).join("") + '</div>';
+      if (ab.third) b += '<div class="round third"><div class="eyebrow">Consolation</div>' + acard(ab.third) + '</div>';
+      b += '<p class="muted" style="font-size:13px;margin:0">Built from the bracket games actually on the schedule. Live scores come from GameChanger; finals posted on Tourney Machine are treated as official.</p>';
+    }
+    else if (!br) b = '<p class="empty">The bracket appears once at least two tournament teams are known.</p>';
+    else {
+      var label = seeds.official ? "Seeded in the order entered in setup" : poolDone ? "Seeded from final pool standings" : "Projected from current pool standings";
+      var tagCls = seeds.official || poolDone ? "chip final" : "chip up";
+      var side = function(t, s, won, lost){
+        if (!t) return '<div class="slot bye"><span class="sd"></span><span class="nm">Bye</span><b></b></div>';
+        if (t.tbd) return '<div class="slot tbd"><span class="sd"></span><span class="nm">' + esc(t.label==="TBD"?"TBD":/^Semifinal/.test(t.label)?t.label:"Winner of " + t.label) + '</span><b></b></div>';
+        var cls = "slot" + (won?" won":"") + (lost?" lost":"") + (t.key===fk?" me":"");
+        return '<div class="' + cls + '"><span class="sd">' + t.seed + '</span><span class="nm">' + esc(t.name) + '</span><b>' + (s==null?"":s) + '</b></div>';
+      };
+      var card = function(m){
+        if (m.bye) return '<div class="match isbye">' + side(m.winner, null, false, false) + '<div class="meta">Advances with a bye</div></div>';
+        var lg = m.game && !m.game.final && m.game.live ? m.game : null;
+        if (lg && m.sa == null){ m.sa = lg.a.k===m.a.key ? lg.a.s : lg.b.s; m.sb = lg.a.k===m.a.key ? lg.b.s : lg.a.s; }
+        var meta = m.winner ? "Final" : lg ? "Live" : (m.game && TL.inProgress(m.game, Date.now())) ? "In progress" : (m.game && !m.game.final) ? fmtTime(m.game.start) + " · " + fmtDay(m.game.start).split(",")[0] : (m.game && m.game.conflict) ? "Scores differ, check GameChanger" : "Not scheduled yet";
+        return '<div class="match">' + side(m.a, m.sa, m.winner && m.winner===m.a, m.loser && m.loser===m.a) + side(m.b, m.sb, m.winner && m.winner===m.b, m.loser && m.loser===m.b) + '<div class="meta">' + esc(meta) + '</div></div>';
+      };
+      b += '<div class="sec-head" style="margin:0"><span class="' + tagCls + '">' + esc(label) + '</span><span class="muted" style="font-size:13px">' + br.size + ' teams · bracket play ' + esc(fmtDate(TL.bracketDay(cfg))) + '</span></div>';
+      if (br.champion && !br.champion.tbd) b += '<div class="champ"><span class="eyebrow">Champion</span><strong>' + esc(br.champion.name) + '</strong></div>';
+      b += '<div class="bracket">' + br.rounds.map(function(r){ return '<div class="round"><div class="eyebrow">' + esc(r.name) + '</div><div class="rmatches">' + r.matches.map(card).join("") + '</div></div>'; }).join("") + '</div>';
+      if (br.third) b += '<div class="round third"><div class="eyebrow">Consolation (3rd place, if played)</div>' + card(br.third) + '</div>';
+      b += '<p class="muted" style="font-size:13px;margin:0">Projected until the bracket games are on the schedule; then this switches to the real matchups.</p>';
+    }
+    var tm = snap && snap.tm;
+    var tml = tmLinks(cfg);
+    if (tml.length && tm){
+      var divTxt = tml.length > 1 ? tml.length + " divisions" : "this division";
+      if (tm.status==="not_released") b += '<div class="note"><strong>Tourney Machine hasn\'t posted pools or a bracket yet.</strong><span class="muted">It lists ' + tm.teams.length + ' teams across ' + divTxt + '. Until the director posts, the bracket above is built from GameChanger scores.</span></div>';
+      else if (tm.status==="posted" && !ab) b += '<div class="note"><strong>Tourney Machine has posted the schedule.</strong><span class="muted">Its games and finals are merged into this page.</span>' + tml.map(function(u,i){ return '<a href="' + esc(u) + '" target="_blank" rel="noopener">Open division ' + (i+1) + ' on Tourney Machine</a>'; }).join("") + '</div>';
+      else if (tm.status==="error") b += '<div class="note warn">Couldn\'t read Tourney Machine on the last pull.</div>';
+      if (tm.lastUpdated) b += '<p class="muted" style="font-size:13px;margin:0">Tourney Machine last updated ' + esc(tm.lastUpdated) + '.</p>';
+    }
+    $("bracket").innerHTML = b;
+    if (cfg.auto && (cfg.noGames || !games.length)){
+      /* between tournaments: nothing on the team's schedule yet */
+      var who = followTeam ? followTeam.name : 'The team';
+      $("h-dates").textContent = "Between tournaments";
+      $("team").innerHTML = '<div class="teamcard"><h3>' + esc(who) + '</h3><div class="next">No games on GameChanger right now. When the next tournament is on the team\'s schedule, it shows up here on its own.</div></div>';
+      $("stand").innerHTML = '<p class="empty">Standings appear once the next tournament starts.</p>';
+      $("games").innerHTML = '<p class="empty">No games on the schedule right now.</p>';
+      $("bracket").innerHTML = '<p class="empty">The bracket appears once the next tournament is set up.</p>';
+      return;
+    }
+    if (cfg.auto){
+      var autoNote = '<div class="note"><strong>No tournament set up for this weekend yet.</strong><span class="muted">This page is following ' + esc(followTeam ? followTeam.name : 'our team') + '\'s games on its own. Full standings and the bracket appear once the weekend\'s tournament is set up.</span></div>';
+      $("stand").innerHTML = autoNote; $("bracket").innerHTML = '<p class="empty">The bracket appears once the tournament is set up.</p>';
+      $("h-dates").textContent = games.length ? fmtDate(cfg.dateStart) + (cfg.dateEnd!==cfg.dateStart ? " – " + fmtDate(cfg.dateEnd) : "") : "No upcoming games on GameChanger yet";
+    }
+
+  }
+
+  /* the job publishes every check to the repository's "live" branch (no site rebuild needed) */
+  var LIVE_URL = (function(){ var owner = location.hostname.split(".")[0], repo = location.pathname.split("/").filter(Boolean)[0] || "softball-tracker";
+    return "https://raw.githubusercontent.com/" + owner + "/" + repo + "/live/data.json"; })();
+  async function load(){
+    try {
+      var d = null, site = null;
+      try { var lr = await fetch(LIVE_URL + "?t=" + Date.now(), {cache:"no-store"}); if (lr.ok) d = await lr.json(); } catch(e){}
+      try { var r = await fetch("../data.json?t=" + Date.now(), {cache:"no-store"}); if (r.ok) site = await r.json(); } catch(e){}
+      /* use whichever copy is newer; the site's copy wins when settings changed since the last check */
+      var t = function(x){ return x && x.snap ? (x.snap.checkedAt || x.snap.fetchedAt || 0) : 0; };
+      if (!d || (site && t(site) >= t(d)) || (site && JSON.stringify(site.base) !== JSON.stringify(d.base))) d = site;
+      if (!d) throw new Error("no data");
+      cfg = d.cfg || null; snap = d.snap || null; msg(null); render();
+    } catch(e){ msg("Couldn't load the latest scores. This page tries again every minute."); if (cfg) render(); }
+  }
+  load();
+  setInterval(load, 60000);
+  document.addEventListener("visibilitychange", function(){ if (!document.hidden) load(); });
+})();
+</script>
+</body>
+</html>
