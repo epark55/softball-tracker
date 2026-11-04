@@ -46,20 +46,16 @@ const inRegion = (loc) => REGION.some((st) => new RegExp(",\\s*" + st + "\\b").t
 let parseTMHtml;
 
 /* Is this Tourney Machine name our team? Stricter than the page's matcher, since we're searching
-   every event, not one known field: every distinctive word of our name must be in theirs
-   ("Team PA 2032" isn't "Team PA 2030 Kammerdeiner"), and a different grad year or age group rules it out. */
+   every event, not one known field: every distinctive word of the shorter name must be in the longer one
+   and the shorter one needs at least two ("Team PA 2032" isn't "Team PA 2030 Kammerdeiner", but
+   "Unity 14U Rodgers" is "Unity 14u Rodgers - PA"); a different grad year or age group rules it out. */
 const GENERIC = new Set(["team", "the", "softball", "fastpitch", "fp", "club", "travel"]);
 const toks = (s) => (s || "").toLowerCase().replace(/&/g, " and ").replace(/(\d+)\s*u\b/g, "$1u").replace(/[^a-z0-9]+/g, " ").trim().split(" ").filter(Boolean);
 const years = (s) => toks(s).filter((t) => /^(19|20)\d\d$/.test(t));
 const ages = (s) => toks(s).filter((t) => /^\d+u$/.test(t));
 const words = (s) => toks(s).filter((t) => !GENERIC.has(t) && !/^\d+u$/.test(t) && !/^(19|20)\d\d$/.test(t));
 const clash = (a, b) => a.length && b.length && !a.some((x) => b.includes(x));
-export function isTeam(theirs, ours) {
-  if (clash(years(theirs), years(ours)) || clash(ages(theirs), ages(ours))) return false;
-  const w = new Set(words(theirs)), o = words(ours);
-  return o.length > 0 && o.every((x) => w.has(x));
-}
-/* opponents: same idea, but GameChanger and Tourney Machine names differ more, so the shorter name's words must all be in the longer one */
+export function isTeam(theirs, ours) { return isOpp(theirs, ours); }
 function isOpp(a, b) {
   if (clash(years(a), years(b)) || clash(ages(a), ages(b))) return false;
   const [s, l] = words(a).length <= words(b).length ? [words(a), new Set(words(b))] : [words(b), new Set(words(a))];
