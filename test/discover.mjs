@@ -1,14 +1,17 @@
-// TEST ONLY: finds a weekend's tournament field with no hand setup. The live updater doesn't use it.
-//   1. Read our team's public GameChanger schedule and find the weekend (game days, opponents).
-//   2. Search Tourney Machine for softball events that start or end on those days.
-//   3. Open each candidate's divisions and look for our team (and our GC opponents) in the team lists.
-//   4. The best match gives the title, dates, venue, division links and the field.
-//   5. Match field teams to GameChanger ids we already know (tournament.json + test/team-directory.json).
-// Usage:
-//   TEAM=9OmIn3ns4vv7 [WEEKEND=2026-10-30] node test/discover.mjs
-// Writes test/out/discover-<team>-<date>.json and prints a report.
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+// TEST ONLY: finds our next tournament and its field with no hand setup. The live updater doesn't use it.
+// Two ways to find it, earliest wins:
+//   A. GameChanger: our team's public schedule gives the weekend (and opponents once they're named).
+//      Search Tourney Machine for softball events on those days; the one listing us (or our opponents) wins.
+//   B. Look-ahead: for each weekend between now and then (up to LOOKAHEAD days), search Tourney Machine
+//      for nearby softball events and check their team lists for our name. This catches events we're
+//      committed to before the coach adds the games to GameChanger.
+// Field = teams in the divisions that hold us or our opponents (that's how 13U and 14U combined at Ghostbuster).
+// GameChanger ids come from teams we already know (tournament.json + test/state/team-directory.json).
+//
+// CLI:  TEAM=9OmIn3ns4vv7 [WEEKEND=2026-10-30] [TODAY=2026-11-04] node test/discover.mjs
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { createRequire } from "node:module";
+import { pathToFileURL } from "node:url";
 
 const require = createRequire(import.meta.url);
 const TL = require("../docs/logic.js");
@@ -17,6 +20,8 @@ const GC = "https://api.team-manager.gc.com/public/teams/";
 const TMAPI = "https://api.tourneymachine.com/v2/Tournaments/Search";
 const TMWEB = "https://tourneymachine.com/Public/Results/";
 const UA = "Mozilla/5.0 (compatible; softball-tracker; +https://github.com)";
+const REGION = (process.env.REGION || "PA,WV,OH,MD,NY,NJ,VA,DE").split(",");
+const LOOKAHEAD = +(process.env.LOOKAHEAD || 70);   // days
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const log = (...a) => console.log(...a);
 
@@ -33,123 +38,150 @@ async function get(url, kind) {
     }
   }
 }
-const addDays = (ymd, n) => { const d = new Date(ymd + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+export const addDays = (ymd, n) => { const d = new Date(ymd + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+const dow = (ymd) => new Date(ymd + "T12:00:00Z").getUTCDay();
 const tmDate = (ymd) => { const [y, m, d] = ymd.split("-").map(Number); return `${m}-${d}-${y}`; };   // TM tags events "11-1-2026"
 const dec = (s) => s.replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&nbsp;/g, " ").trim();
-const parseTMHtml = (await import("../scripts/update.mjs")).parseTMHtml;
+const inRegion = (loc) => REGION.some((st) => new RegExp(",\\s*" + st + "\\b").test(loc || ""));
+let parseTMHtml;
 
-/* ---------- 1. our weekend ---------- */
-const TEAM = process.env.TEAM || "9OmIn3ns4vv7";
-const today = process.env.TODAY || new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
-const team = await get(GC + TEAM, "json");
-// game days count even before opponents are named (early schedules often say TBD)
-const games = (await get(GC + TEAM + "/games", "json")).filter((g) => g.start_ts);
-const days = [...new Set(games.map((g) => TL.localDate(g.start_ts)))].sort();
-const clusters = [];
-for (const d of days) { const c = clusters.at(-1); if (c && d <= addDays(c.end, 2)) c.end = d; else clusters.push({ start: d, end: d }); }
-const want = process.env.WEEKEND || today;
-const wk = clusters.find((c) => c.start <= want && want <= c.end) || clusters.find((c) => c.start >= want);
-if (!wk) { log(`No upcoming games on ${team.name}'s GameChanger schedule.`); process.exit(0); }
-const wkGames = games.filter((g) => { const d = TL.localDate(g.start_ts); return d >= wk.start && d <= wk.end; });
-const opponents = [...new Set(wkGames.map((g) => g.opponent_team && g.opponent_team.name).filter((n) => n && !/^(tbd|tba)\b/i.test(n)))];
-log(`Team: ${team.name}\nWeekend on GameChanger: ${wk.start} to ${wk.end}, ${wkGames.length} games`);
-log(`Opponents listed: ${opponents.join(", ") || "(none yet)"}`);
-
-/* ---------- 2. candidate events ---------- */
-const searchDays = [];
-for (let d = addDays(wk.start, -1); d <= addDays(wk.end, 1); d = addDays(d, 1)) searchDays.push(d);
-const cands = new Map();
-for (const d of searchDays) {
-  const r = await get(`${TMAPI}?per_page=100&query=${encodeURIComponent("Softball " + tmDate(d))}`, "json");
+/* Tourney Machine search: softball events whose first or last day is `ymd` */
+async function searchDay(ymd, cands) {
+  const r = await get(`${TMAPI}?per_page=100&query=${encodeURIComponent("Softball " + tmDate(ymd))}`, "json");
   for (const x of r.result || []) {
     const id = /IDTournament=([^&]+)/.exec(x.link || "");
-    if (!id) continue;
-    // the event must actually cover one of our game days (keywords hold its first and last day)
+    if (!id || cands.has(id[1])) continue;
     const ds = [...(x.keywords || "").matchAll(/\b(\d{1,2})-(\d{1,2})-(\d{4})\b/g)]
       .map((m) => `${m[3]}-${m[1].padStart(2, "0")}-${m[2].padStart(2, "0")}`).sort();
-    if (!ds.length || ds.at(-1) < wk.start || ds[0] > wk.end) continue;
-    cands.set(id[1], { id: id[1], title: x.title, date: x.date, location: x.location, from: ds[0], to: ds.at(-1) });
+    if (!ds.length) continue;
+    cands.set(id[1], { id: id[1], title: x.title, date: x.date, location: x.location || "", from: ds[0], to: ds.at(-1) });
   }
-  await sleep(400);
+  await sleep(350);
 }
-log(`Tourney Machine softball events overlapping those days: ${cands.size}`);
 
-/* Look nearest-first: events in states where our opponents' names or our past venues suggest we play.
-   Simple rule for the test: rank by how many of our game days the event covers, then check up to MAX. */
-const MAX = +(process.env.MAX || 60);
-const list = [...cands.values()].sort((a, b) => (a.location.length - b.location.length));
-
-/* ---------- 3. open divisions, look for our team ---------- */
-const nameHit = (a, b) => TL.similar(a, b);
-async function divisions(tid) {
-  const h = await get(`${TMWEB}Tournament.aspx?IDTournament=${tid}`, "html");
+/* an event's divisions and their team lists (cached for the run) */
+const divCache = new Map();
+async function loadDivisions(c) {
+  if (divCache.has(c.id)) return divCache.get(c.id);
+  const h = await get(`${TMWEB}Tournament.aspx?IDTournament=${c.id}`, "html");
   const out = [], seen = new Set();
   for (const m of h.matchAll(/href="(Division\.aspx\?IDTournament=[^"&]+&(?:amp;)?IDDivision=([^"&]+))"[^>]*>([\s\S]*?)<\/a>/g)) {
     if (seen.has(m[2])) continue; seen.add(m[2]);
-    out.push({ id: m[2], url: TMWEB + dec(m[1]), name: dec(m[3].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ")) });
+    const url = TMWEB + dec(m[1]);
+    const p = parseTMHtml(await get(url, "html"));
+    out.push({ id: m[2], url, name: dec(m[3].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ")), teams: p.teams, status: p.status, games: p.games.length });
+    await sleep(300);
   }
-  const venue = /Location[\s\S]{0,300}?<[^>]*>([^<]{3,120})</i.exec(h);
-  return { divs: out, venue: venue ? dec(venue[1]) : null };
+  divCache.set(c.id, out);
+  await sleep(300);
+  return out;
 }
-const found = [];
-let checked = 0;
-for (const c of list) {
-  if (checked >= MAX) break;
-  checked++;
-  try {
-    const { divs } = await divisions(c.id);
-    c.divisions = [];
-    for (const d of divs) {
-      const p = parseTMHtml(await get(d.url, "html"));
-      const us = p.teams.filter((t) => nameHit(t, team.name));
-      const opp = p.teams.filter((t) => opponents.some((o) => nameHit(t, o)));
-      c.divisions.push({ ...d, teams: p.teams, status: p.status, games: p.games.length, us, opp });
-      await sleep(350);
+async function check(c, ourName, opponents) {
+  const divs = await loadDivisions(c);
+  c.divisions = divs.map((d) => ({ ...d,
+    us: d.teams.filter((t) => TL.similar(t, ourName)),
+    opp: d.teams.filter((t) => opponents.some((o) => TL.similar(t, o))) }));
+  c.us = c.divisions.some((d) => d.us.length);
+  c.oppHits = new Set(c.divisions.flatMap((d) => d.opp)).size;
+  c.score = (c.us ? 100 : 0) + c.oppHits;
+  return c;
+}
+
+export async function discover({ team: TEAM, weekend, today, quiet }) {
+  parseTMHtml = parseTMHtml || (await import("../scripts/update.mjs")).parseTMHtml;
+  const say = quiet ? () => {} : log;
+  const team = await get(GC + TEAM, "json");
+  // game days count even before opponents are named (early schedules often say TBD)
+  const games = (await get(GC + TEAM + "/games", "json")).filter((g) => g.start_ts);
+  const days = [...new Set(games.map((g) => TL.localDate(g.start_ts)))].sort();
+  const clusters = [];
+  for (const d of days) { const c = clusters.at(-1); if (c && d <= addDays(c.end, 2)) c.end = d; else clusters.push({ start: d, end: d }); }
+  const want = weekend || today;
+  // the weekend under way, or the next one (a weekend that ended yesterday still counts as "this one")
+  const wk = clusters.find((c) => c.start <= want && addDays(c.end, weekend ? 0 : 1) >= want) || clusters.find((c) => c.start >= want) || null;
+  say(`Team: ${team.name}`);
+  say(wk ? `GameChanger: next games ${wk.start} to ${wk.end}` : "GameChanger: no upcoming games");
+
+  /* A. the GameChanger weekend */
+  let fromGC = null;
+  if (wk) {
+    const wkGames = games.filter((g) => { const d = TL.localDate(g.start_ts); return d >= wk.start && d <= wk.end; });
+    const opponents = [...new Set(wkGames.map((g) => g.opponent_team && g.opponent_team.name).filter((n) => n && !/^(tbd|tba)\b/i.test(n)))];
+    say(`  opponents listed: ${opponents.join(", ") || "(none yet)"}`);
+    const cands = new Map();
+    for (let d = addDays(wk.start, -1); d <= addDays(wk.end, 1); d = addDays(d, 1)) await searchDay(d, cands);
+    const list = [...cands.values()].filter((c) => c.to >= wk.start && c.from <= wk.end)
+      .sort((a, b) => inRegion(b.location) - inRegion(a.location));          // nearby first
+    say(`  Tourney Machine softball events on those days: ${list.length}`);
+    const hits = [];
+    for (const c of list.slice(0, 60)) {
+      try { if ((await check(c, team.name, opponents)).score) hits.push(c); } catch (e) { say(`  skipped ${c.title}: ${e.message}`); }
+      if (hits.some((h) => h.us)) break;                                     // found us; good enough
     }
-    c.us = c.divisions.some((d) => d.us.length);
-    c.oppHits = new Set(c.divisions.flatMap((d) => d.opp)).size;
-    c.score = (c.us ? 100 : 0) + c.oppHits;
-    if (c.score) { found.push(c); log(`  match: ${c.title} (${c.location}) us=${c.us} opponents=${c.oppHits}`); }
-  } catch (e) { log(`  skipped ${c.title}: ${e.message}`); }
-  await sleep(400);
-}
-log(`Checked ${checked} events.`);
-found.sort((a, b) => b.score - a.score);
-const best = found[0];
+    hits.sort((a, b) => b.score - a.score);
+    if (hits[0]) { fromGC = { ...hits[0], how: "gamechanger", opponents }; say(`  match: ${fromGC.title}`); }
+    else say("  no Tourney Machine event lists us or our opponents");
+  }
 
-/* ---------- 4/5. field + GameChanger ids ---------- */
-const dir = {};
-const addDir = (id, name) => { if (id && name) dir[id] = name; };
-try { for (const t of JSON.parse(readFileSync(ROOT + "tournament.json", "utf8")).gcTeams || []) addDir(t.id, t.name); } catch {}
-try { for (const [id, name] of Object.entries(JSON.parse(readFileSync(ROOT + "test/team-directory.json", "utf8")))) addDir(id, name); } catch {}
-addDir(TEAM, team.name);
+  /* B. look ahead for events that list us before GameChanger has the games */
+  let ahead = null;
+  const stop = wk && wk.start > today ? wk.start : addDays(today, LOOKAHEAD);
+  const limit = addDays(today, LOOKAHEAD);
+  const end = stop < limit ? stop : limit;
+  if (!weekend) {
+    const cands = new Map();
+    // every Friday, Saturday and Sunday from today until then (TM tags each event with its first and last day)
+    for (let d = today; d < end; d = addDays(d, 1)) if ([0, 5, 6].includes(dow(d))) await searchDay(d, cands);
+    const list = [...cands.values()].filter((c) => inRegion(c.location) && c.to >= today && c.from < end)
+      .sort((a, b) => a.from.localeCompare(b.from));
+    say(`Look-ahead to ${end}: ${list.length} nearby softball events`);
+    for (const c of list) {
+      try { if ((await check(c, team.name, [])).us) { ahead = { ...c, how: "lookahead", opponents: [] }; break; } }
+      catch (e) { say(`  skipped ${c.title}: ${e.message}`); }
+    }
+    say(ahead ? `  we're listed on: ${ahead.title} (${ahead.from})` : "  not listed on any of them");
+  }
 
-let result = { team: { id: TEAM, name: team.name }, weekend: wk, opponents, checked, candidates: cands.size };
-if (!best) {
-  log("\nNo Tourney Machine event lists this team or its opponents. The page would follow our team's GameChanger games only.");
-} else {
-  // keep divisions that hold us or any opponent (that's how 13U and 14U got combined at Ghostbuster)
+  const best = [fromGC, ahead].filter(Boolean).sort((a, b) => a.from.localeCompare(b.from))[0] || null;
+  const result = { checkedAt: new Date().toISOString(), team: { id: TEAM, name: team.name },
+                   gcWeekend: wk, found: !!best };
+  if (!best) { say("Result: nothing on Tourney Machine; the page follows our GameChanger games only."); return result; }
+
+  const dir = {};
+  const addDir = (id, name) => { if (id && name) dir[id] = name; };
+  try { for (const t of JSON.parse(readFileSync(ROOT + "tournament.json", "utf8")).gcTeams || []) addDir(t.id, t.name); } catch {}
+  try { for (const [id, name] of Object.entries(JSON.parse(readFileSync(ROOT + "test/state/team-directory.json", "utf8")))) addDir(id, name); } catch {}
+  addDir(TEAM, team.name);
+
   const keep = best.divisions.filter((d) => d.us.length || d.opp.length);
   const field = [...new Set(keep.flatMap((d) => d.teams))];
-  const gcTeams = [], noGc = [];
+  const gcTeams = [{ id: TEAM, name: team.name }], noGc = [];
   for (const t of field) {
-    const hit = Object.entries(dir).find(([, n]) => nameHit(n, t));
-    if (hit) gcTeams.push({ id: hit[0], name: hit[1], tm: t }); else noGc.push(t);
+    if (keep.some((d) => d.us.includes(t))) continue;                         // that's us
+    const hit = Object.entries(dir).find(([id, n]) => id !== TEAM && TL.similar(n, t));
+    if (hit && !gcTeams.some((g) => g.id === hit[0])) gcTeams.push({ id: hit[0], name: hit[1] }); else if (!hit) noGc.push(t);
   }
-  const proposed = {
-    title: best.title, venue: best.location, dateStart: best.from, dateEnd: best.to,
-    follow: TEAM, tmUrls: keep.map((d) => d.url), gcTeams: gcTeams.map(({ id, name }) => ({ id, name })),
-  };
-  result = { ...result, best: { title: best.title, location: best.location, date: best.date, divisions: best.divisions.map((d) =>
-    ({ name: d.name, url: d.url, status: d.status, games: d.games, teams: d.teams.length, us: d.us, opponents: d.opp })) },
-    others: found.slice(1).map((c) => ({ title: c.title, score: c.score })), field, gcMatched: gcTeams, noGc, proposed };
-  log(`\nBest match: ${best.title}\n  ${best.date} · ${best.location}`);
-  for (const d of best.divisions) log(`  division ${d.name || d.id}: ${d.teams.length} teams, schedule ${d.status}${d.us.length ? " · has us (" + d.us.join(", ") + ")" : ""}${d.opp.length ? " · opponents: " + d.opp.join(", ") : ""}${keep.includes(d) ? "  [kept]" : ""}`);
-  log(`Field (${field.length}): ${field.join(" | ")}`);
-  log(`GameChanger ids known for ${gcTeams.length}: ${gcTeams.map((g) => g.name).join(", ")}`);
-  log(`No GameChanger id yet for ${noGc.length}: ${noGc.join(", ")}`);
+  Object.assign(result, {
+    how: best.how, title: best.title, location: best.location, date: best.date, dateStart: best.from, dateEnd: best.to,
+    tournamentUrl: `${TMWEB}Tournament.aspx?IDTournament=${best.id}`,
+    divisions: best.divisions.map((d) => ({ name: d.name, url: d.url, status: d.status, games: d.games, teams: d.teams.length,
+                                            us: d.us, opponents: d.opp, kept: keep.includes(d) })),
+    field, noGc,
+    settings: { title: best.title, venue: best.location, dateStart: best.from, dateEnd: best.to, bracketStart: best.to,
+                bracketSize: 0, follow: TEAM, tmUrls: keep.map((d) => d.url), gcTeams,
+                excludeTeams: [], ignoreReports: [], seedOrder: [], discovered: true },
+  });
+  say(`Result: ${best.title} · ${best.date} · ${best.location} (found via ${best.how === "lookahead" ? "Tourney Machine team list" : "GameChanger schedule"})`);
+  for (const d of result.divisions) say(`  ${d.kept ? "kept   " : "skipped"} ${d.name}: ${d.teams} teams, schedule ${d.status}${d.us.length ? " · has us" : ""}${d.opponents.length ? " · opponents: " + d.opponents.join(", ") : ""}`);
+  say(`  field ${field.length}; GameChanger links for ${gcTeams.length}; none yet for: ${noGc.join(", ") || "-"}`);
+  return result;
 }
-mkdirSync(ROOT + "test/out", { recursive: true });
-const outFile = `${ROOT}test/out/discover-${TEAM}-${wk.start}.json`;
-writeFileSync(outFile, JSON.stringify(result, null, 2));
-log(`\nSaved ${outFile}`);
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const today = process.env.TODAY || new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+  const r = await discover({ team: process.env.TEAM || "9OmIn3ns4vv7", weekend: process.env.WEEKEND || "", today });
+  mkdirSync(ROOT + "test/out", { recursive: true });
+  const f = `${ROOT}test/out/discover-${r.team.id}-${r.dateStart || "none"}.json`;
+  writeFileSync(f, JSON.stringify(r, null, 2));
+  log(`Saved ${f}`);
+}

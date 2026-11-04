@@ -139,6 +139,7 @@ footer p{margin:0 0 8px}
     <div class="statusbar"><span id="st-text"><span class="dot"></span>Loading scores</span></div>
     <label class="follow" for="follow">Following<select id="follow"></select></label>
     <div id="st-msg" class="note warn" hidden></div>
+    <div id="next-up" class="note" hidden></div>
   </header>
 
   <section id="sec-team" aria-labelledby="t-team"><h2 id="t-team" class="eyebrow" style="font-size:13px">Team you're following</h2><div id="team"></div></section>
@@ -364,36 +365,42 @@ footer p{margin:0 0 8px}
 
   }
 
-  /* the job publishes every check to the repository's "live" branch (no site rebuild needed) */
-  var LIVE_URL = (function(){ var owner = location.hostname.split(".")[0], repo = location.pathname.split("/").filter(Boolean)[0] || "softball-tracker";
-    return "https://raw.githubusercontent.com/" + owner + "/" + repo + "/live/data.json"; })();
-  /* TEST: read the newest check through GitHub's API instead of its file server, which caches for
-     up to 5 minutes and ignores cache-busting. The browser re-asks with the file's ETag; an unchanged
-     file comes back as "304 not modified", which doesn't count toward GitHub's 60-an-hour limit per
-     visitor. If the API says no (limit reached, offline), fall back to the file server. */
-  var API_URL = LIVE_URL.replace("https://raw.githubusercontent.com/", "https://api.github.com/repos/").replace("/live/data.json", "/contents/data.json?ref=live");
+  /* TEST: this page has its own tournament, found automatically (test/pipeline.mjs) and kept up by a
+     private copy of the score updater, saved as docs/test/data.json. Read it through GitHub's API
+     (fresh; 60 an hour per visitor) and fall back to the site's copy. */
+  var REPO = (function(){ var owner = location.hostname.split(".")[0], repo = location.pathname.split("/").filter(Boolean)[0] || "softball-tracker";
+    return owner + "/" + repo; })();
   var testStats = {api:0, fallback:0, lastSource:"", remaining:null};
-  async function fetchLive(){
+  async function fetchTest(file){
     try {
-      var r = await fetch(API_URL, {cache:"no-cache", headers:{Accept:"application/vnd.github.raw+json"}});
+      var r = await fetch("https://api.github.com/repos/" + REPO + "/contents/docs/test/" + file + "?ref=main", {cache:"no-cache", headers:{Accept:"application/vnd.github.raw+json"}});
       testStats.remaining = r.headers.get("x-ratelimit-remaining");
       if (r.ok){ testStats.api++; testStats.lastSource = "GitHub API"; return await r.json(); }
     } catch(e){}
-    try { var lr = await fetch(LIVE_URL + "?t=" + Date.now(), {cache:"no-store"}); if (lr.ok){ testStats.fallback++; testStats.lastSource = "file server (fallback)"; return await lr.json(); } } catch(e){}
+    try { var lr = await fetch(file + "?t=" + Date.now(), {cache:"no-store"}); if (lr.ok){ testStats.fallback++; testStats.lastSource = "site (fallback)"; return await lr.json(); } } catch(e){}
     return null;
   }
   window.__testStats = testStats;
+  var nextUp = null, nextAt = 0;
+  function showNext(){
+    var el = $("next-up"); if (!el) return;
+    var n = nextUp;
+    if (!n || !n.found || (cfg && cfg.title === n.title && cfg.dateStart === n.dateStart && !cfg.past)){ el.hidden = true; return; }
+    var when = fmtDate(n.dateStart) + (n.dateEnd !== n.dateStart ? " – " + fmtDate(n.dateEnd) : "");
+    var how = n.how === "lookahead" ? "Found on Tourney Machine's team list (not on GameChanger yet)." : "Found from our GameChanger schedule.";
+    el.innerHTML = '<strong>Next tournament: ' + esc(n.title) + '</strong><span class="muted">' + esc(when) + (n.location ? ' · ' + esc(n.location) : '') +
+      ' · ' + n.field.length + ' teams listed. ' + how + ' This page switches to it on its own the week of the tournament.</span>' +
+      (n.tournamentUrl ? '<a href="' + esc(n.tournamentUrl) + '" target="_blank" rel="noopener">Open on Tourney Machine</a>' : '');
+    el.hidden = false;
+  }
   async function load(){
     try {
-      var d = null, site = null;
-      d = await fetchLive();
-      try { var r = await fetch("../data.json?t=" + Date.now(), {cache:"no-store"}); if (r.ok) site = await r.json(); } catch(e){}
-      /* use whichever copy is newer; the site's copy wins when settings changed since the last check */
-      var t = function(x){ return x && x.snap ? (x.snap.checkedAt || x.snap.fetchedAt || 0) : 0; };
-      if (!d || (site && t(site) >= t(d)) || (site && JSON.stringify(site.base) !== JSON.stringify(d.base))) d = site;
+      var d = await fetchTest("data.json");
       if (!d) throw new Error("no data");
       cfg = d.cfg || null; snap = d.snap || null; msg(null); render();
     } catch(e){ msg("Couldn't load the latest scores. This page tries again every minute."); if (cfg) render(); }
+    if (Date.now() - nextAt > 10 * 60000){ nextAt = Date.now(); var n = await fetchTest("next.json"); if (n) nextUp = n; }
+    showNext();
   }
   load();
   /* TEST: every 75 s. GitHub allows 60 API requests an hour per visitor and counts every one,

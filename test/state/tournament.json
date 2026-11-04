@@ -1,0 +1,53 @@
+{
+  "title": "Team PA Ghostbuster 14U Alliance Qualifier / 13U Super Cup",
+  "venue": "Highlands Sports Complex, Triadelphia, WV",
+  "dateStart": "2026-10-30",
+  "dateEnd": "2026-11-01",
+  "bracketStart": "2026-11-01",
+  "bracketSize": 0,
+  "follow": "9OmIn3ns4vv7",
+  "tmUrls": [
+    "https://tourneymachine.com/Public/Results/Division.aspx?IDTournament=h202608181333467130353119d375842&IDDivision=h20260818133346733f1b7d697cf0a42",
+    "https://tourneymachine.com/Public/Results/Division.aspx?IDTournament=h202608181333467130353119d375842&IDDivision=h202608181333467411ab57b8d787a4e"
+  ],
+  "gcTeams": [
+    {
+      "id": "9OmIn3ns4vv7",
+      "name": "Team PA 2030 Kammerdeiner"
+    },
+    {
+      "id": "bWAgl1fokEJ8",
+      "name": "Unity 14U Williams"
+    },
+    {
+      "id": "m0QuD26jFKCE",
+      "name": "Unity 14u Rodgers - PA"
+    },
+    {
+      "id": "7GqzHSsWfAiG",
+      "name": "Tri-State Thunder Gold 14U"
+    },
+    {
+      "id": "jRj0Mi2IoFR2",
+      "name": "Impact Caymol Dibartolomeo 14U"
+    },
+    {
+      "id": "q1r5h3BZmdPR",
+      "name": "Outlaws Premier 2031 Lucia"
+    },
+    {
+      "id": "13tI2vPbkHn0",
+      "name": "Team PA Larcinese/Pinneri 13U"
+    },
+    {
+      "id": "vaGizeBjZImX",
+      "name": "Team PA Rasbach 13U"
+    }
+  ],
+  "excludeTeams": [
+    "NJ PRIDE 14 KEITH",
+    "Unity Torres/Delhoyo"
+  ],
+  "seedOrder": [],
+  "ignoreReports": []
+}
