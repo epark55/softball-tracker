@@ -1,0 +1,48 @@
+{
+ "checkedAt": "2026-11-04T15:33:55.448Z",
+ "found": true,
+ "how": "lookahead",
+ "team": "Team PA 2030 Kammerdeiner",
+ "title": "Gobble Wobble - Lady Dukes Round Robin",
+ "location": "Tridelphia, WV",
+ "dateStart": "2026-11-13",
+ "dateEnd": "2026-11-14",
+ "tournamentUrl": "https://tourneymachine.com/Public/Results/Tournament.aspx?IDTournament=h20260715135233648d7de1bd3a6504d",
+ "field": [
+  "FP Select 2032",
+  "Lady Dukes WPA 12u",
+  "Team PA 2032",
+  "Unity PGH 2032"
+ ],
+ "noGc": [
+  "FP Select 2032",
+  "Lady Dukes WPA 12u",
+  "Unity PGH 2032"
+ ],
+ "gcWeekend": {
+  "start": "2027-01-24",
+  "end": "2027-01-24"
+ },
+ "settings": {
+  "title": "Gobble Wobble - Lady Dukes Round Robin",
+  "venue": "Tridelphia, WV",
+  "dateStart": "2026-11-13",
+  "dateEnd": "2026-11-14",
+  "bracketStart": "2026-11-14",
+  "bracketSize": 0,
+  "follow": "9OmIn3ns4vv7",
+  "tmUrls": [
+   "https://tourneymachine.com/Public/Results/Division.aspx?IDTournament=h20260715135233648d7de1bd3a6504d&IDDivision=h20260715135518006f8a1d692004149"
+  ],
+  "gcTeams": [
+   {
+    "id": "9OmIn3ns4vv7",
+    "name": "Team PA 2030 Kammerdeiner"
+   }
+  ],
+  "excludeTeams": [],
+  "ignoreReports": [],
+  "seedOrder": [],
+  "discovered": true
+ }
+}
