@@ -396,7 +396,9 @@ footer p{margin:0 0 8px}
     } catch(e){ msg("Couldn't load the latest scores. This page tries again every minute."); if (cfg) render(); }
   }
   load();
-  setInterval(load, 20000);   /* TEST: every 20 s instead of every minute */
+  /* TEST: every 75 s. GitHub allows 60 API requests an hour per visitor and counts every one,
+     so this stays under (48 an hour); if it ever runs out, the page falls back to the file server. */
+  setInterval(load, 75000);
   document.addEventListener("visibilitychange", function(){ if (!document.hidden) load(); });
 })();
 </script>
