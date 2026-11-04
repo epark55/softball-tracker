@@ -1,0 +1,44 @@
+name: TEST discover field
+
+# Test only, started by hand. Doesn't touch the live page, the live updater, or tournament.json.
+on:
+  workflow_dispatch:
+    inputs:
+      team:
+        description: "GameChanger team id"
+        default: "9OmIn3ns4vv7"
+      weekend:
+        description: "Any date in the weekend (YYYY-MM-DD); blank = next weekend"
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Search Tourney Machine from GitHub's servers
+        run: |
+          curl -sS -o /dev/null -w "TM search API: HTTP %{http_code}\n" "https://api.tourneymachine.com/v2/Tournaments/Search?query=Ghostbuster"
+          curl -sS -o /dev/null -w "TM tournament page: HTTP %{http_code}\n" "https://tourneymachine.com/Public/Results/Tournament.aspx?IDTournament=h202608181333467130353119d375842"
+      - name: Requested weekend
+        env:
+          TEAM: ${{ inputs.team }}
+          WEEKEND: ${{ inputs.weekend }}
+        run: node test/discover.mjs
+      - name: "Case: Ghostbuster (Oct 30 - Nov 1), our team"
+        run: TEAM=9OmIn3ns4vv7 WEEKEND=2026-10-30 node test/discover.mjs
+      - name: "Case: Pumpkin Smash (Oct 24-25), Team PA Rasbach"
+        run: TEAM=vaGizeBjZImX WEEKEND=2026-10-24 node test/discover.mjs
+      - name: "Case: Pumpkin Smash (Oct 24-25), Unity Rodgers"
+        run: TEAM=m0QuD26jFKCE WEEKEND=2026-10-24 node test/discover.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: discover-results
+          path: test/out/
