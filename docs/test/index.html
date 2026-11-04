@@ -367,10 +367,26 @@ footer p{margin:0 0 8px}
   /* the job publishes every check to the repository's "live" branch (no site rebuild needed) */
   var LIVE_URL = (function(){ var owner = location.hostname.split(".")[0], repo = location.pathname.split("/").filter(Boolean)[0] || "softball-tracker";
     return "https://raw.githubusercontent.com/" + owner + "/" + repo + "/live/data.json"; })();
+  /* TEST: read the newest check through GitHub's API instead of its file server, which caches for
+     up to 5 minutes and ignores cache-busting. The browser re-asks with the file's ETag; an unchanged
+     file comes back as "304 not modified", which doesn't count toward GitHub's 60-an-hour limit per
+     visitor. If the API says no (limit reached, offline), fall back to the file server. */
+  var API_URL = LIVE_URL.replace("https://raw.githubusercontent.com/", "https://api.github.com/repos/").replace("/live/data.json", "/contents/data.json?ref=live");
+  var testStats = {api:0, fallback:0, lastSource:"", remaining:null};
+  async function fetchLive(){
+    try {
+      var r = await fetch(API_URL, {cache:"no-cache", headers:{Accept:"application/vnd.github.raw+json"}});
+      testStats.remaining = r.headers.get("x-ratelimit-remaining");
+      if (r.ok){ testStats.api++; testStats.lastSource = "GitHub API"; return await r.json(); }
+    } catch(e){}
+    try { var lr = await fetch(LIVE_URL + "?t=" + Date.now(), {cache:"no-store"}); if (lr.ok){ testStats.fallback++; testStats.lastSource = "file server (fallback)"; return await lr.json(); } } catch(e){}
+    return null;
+  }
+  window.__testStats = testStats;
   async function load(){
     try {
       var d = null, site = null;
-      try { var lr = await fetch(LIVE_URL + "?t=" + Date.now(), {cache:"no-store"}); if (lr.ok) d = await lr.json(); } catch(e){}
+      d = await fetchLive();
       try { var r = await fetch("../data.json?t=" + Date.now(), {cache:"no-store"}); if (r.ok) site = await r.json(); } catch(e){}
       /* use whichever copy is newer; the site's copy wins when settings changed since the last check */
       var t = function(x){ return x && x.snap ? (x.snap.checkedAt || x.snap.fetchedAt || 0) : 0; };
@@ -380,7 +396,7 @@ footer p{margin:0 0 8px}
     } catch(e){ msg("Couldn't load the latest scores. This page tries again every minute."); if (cfg) render(); }
   }
   load();
-  setInterval(load, 60000);
+  setInterval(load, 20000);   /* TEST: every 20 s instead of every minute */
   document.addEventListener("visibilitychange", function(){ if (!document.hidden) load(); });
 })();
 </script>
