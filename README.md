@@ -5,7 +5,7 @@ built from each team's public GameChanger page plus the Tourney Machine team lis
 GitHub updates it automatically every few minutes during game hours, so nobody has
 to keep a computer on.
 
-**Public page:** `https://<your-username>.github.io/softball-tracker/`
+**Public page:** https://softball.edparkermedia.com/ (also at `https://epark55.github.io/softball-tracker/`, which redirects there once the custom domain is on)
 
 ## Setting up a new tournament each weekend
 

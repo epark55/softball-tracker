@@ -1,7 +1,7 @@
 # Test copy
 
 A duplicate of the public page for trying changes. Editing these files never changes the live page
-at `/softball-tracker/`.
+at softball.edparkermedia.com (this copy is at `/test/`).
 
 It also tests the hands-off weekly setup. The test page has its own tournament, found with no
 Thursday task:

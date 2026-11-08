@@ -361,8 +361,8 @@ footer p{margin:0 0 8px}
   }
 
   /* the job publishes every check to the repository's "live" branch (no site rebuild needed) */
-  var LIVE_URL = (function(){ var owner = location.hostname.split(".")[0], repo = location.pathname.split("/").filter(Boolean)[0] || "softball-tracker";
-    return "https://raw.githubusercontent.com/" + owner + "/" + repo + "/live/data.json"; })();
+  /* fixed repo name, so the page works on its own domain (softball.edparkermedia.com) and on github.io */
+  var LIVE_URL = "https://raw.githubusercontent.com/epark55/softball-tracker/live/data.json";
   async function load(){
     try {
       var d = null, site = null;

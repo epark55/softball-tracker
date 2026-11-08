@@ -368,8 +368,7 @@ footer p{margin:0 0 8px}
   /* TEST: this page has its own tournament, found automatically (test/pipeline.mjs) and kept up by a
      private copy of the score updater, saved as docs/test/data.json. Read it through GitHub's API
      (fresh; 60 an hour per visitor) and fall back to the site's copy. */
-  var REPO = (function(){ var owner = location.hostname.split(".")[0], repo = location.pathname.split("/").filter(Boolean)[0] || "softball-tracker";
-    return owner + "/" + repo; })();
+  var REPO = "epark55/softball-tracker";   /* fixed, so it works on the custom domain too */
   var testStats = {api:0, fallback:0, lastSource:"", remaining:null};
   async function fetchTest(file){
     try {
