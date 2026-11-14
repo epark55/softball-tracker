@@ -146,8 +146,8 @@ footer p{margin:0 0 8px}
 .dot.live{background:#3BE37A}
 .teamcard{position:relative;overflow:hidden;background:var(--board);color:var(--board-fg);border:1px solid var(--board-line);border-radius:14px}
 .teamcard::before,.teamcard::after{content:"";position:absolute;pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg fill='none' stroke='%23FFC53D' stroke-opacity='.10' stroke-width='4'%3E%3Ccircle cx='100' cy='100' r='94'/%3E%3Cpath d='M38 30 C78 70 78 130 38 170'/%3E%3Cpath d='M162 30 C122 70 122 130 162 170'/%3E%3Cpath d='M48 34 C88 74 88 126 48 166' stroke-dasharray='3 9' stroke-width='7' stroke-opacity='.10'/%3E%3Cpath d='M152 34 C112 74 112 126 152 166' stroke-dasharray='3 9' stroke-width='7' stroke-opacity='.10'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat}
-.teamcard::before{width:230px;height:230px;right:-60px;top:-50px;transform:rotate(-18deg)}
-.teamcard::after{width:130px;height:130px;right:120px;bottom:-55px;transform:rotate(25deg)}
+.teamcard::before{width:min(380px,95%);aspect-ratio:1;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-18deg)}
+.teamcard::after{display:none}
 .teamcard > *{position:relative}
 .teamcard .eyebrow{color:var(--board-muted)}
 .teamcard h3{color:#fff}
@@ -161,10 +161,11 @@ footer p{margin:0 0 8px}
 .nowscore span{color:var(--board-muted)}
 #games{position:relative;isolation:isolate}
 #games::before{content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;
-  background:var(--ball-faint) right -90px top 40px/320px no-repeat,var(--ball-faint) left -110px top 55%/280px no-repeat,var(--ball-faint) right -70px bottom 60px/240px no-repeat}
+  background:var(--ball-faint) center top 30px/min(560px,96%) auto repeat-y;background-size:min(560px,96%) auto;background-repeat:space}
 #games .game{background:color-mix(in srgb,var(--surface) 70%,transparent)}
 #bracket{position:relative;isolation:isolate}
-#bracket::before{content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;background:var(--diamond-faint) center/min(560px,100%) auto no-repeat}
+#bracket .bracket{background:var(--diamond-faint) center/130% auto no-repeat}
+@media (min-width:600px){#bracket .bracket{background-size:contain}}
 #bracket .match{background:color-mix(in srgb,var(--surface) 82%,transparent)}
 </style>
 </head>
