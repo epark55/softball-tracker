@@ -108,10 +108,10 @@
  },
  "snap": {
   "fetchedAt": 1793594704620,
-  "checkedAt": 1793682059336,
+  "checkedAt": 1795316045809,
   "fullAt": 1793594704620,
   "tmAt": 1793594704620,
-  "allAt": 1793682059336,
+  "allAt": 1795316045809,
   "feeds": {
    "13tI2vPbkHn0": {
     "name": "Team PA Larcinese/Pinneri 13U",
@@ -927,7 +927,7 @@
     "start_ts": "2026-10-24T17:15:00.000Z",
     "end_ts": "2026-10-24T18:35:00.000Z",
     "opponent_team": {
-     "name": "Ohio Storm Waltz 13U"
+     "name": "Ohio Storm"
     },
     "score": {
      "team": 13,
