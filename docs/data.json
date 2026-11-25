@@ -108,10 +108,10 @@
  },
  "snap": {
   "fetchedAt": 1793594704620,
-  "checkedAt": 1795313881499,
+  "checkedAt": 1795576063322,
   "fullAt": 1793594704620,
   "tmAt": 1793594704620,
-  "allAt": 1795313881499,
+  "allAt": 1795576063322,
   "feeds": {
    "13tI2vPbkHn0": {
     "name": "Team PA Larcinese/Pinneri 13U",
@@ -1005,7 +1005,7 @@
     "start_ts": "2026-10-31T18:00:00.000Z",
     "end_ts": "2026-10-31T19:30:00.000Z",
     "opponent_team": {
-     "name": "Ohio Storm 2031 Premier Sherrod/Overholt 13U"
+     "name": "Ohio Storm 2031 Premier Sherrod 13U"
     },
     "score": {
      "team": 2,
